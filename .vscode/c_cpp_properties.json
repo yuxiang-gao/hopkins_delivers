@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/home/parallels/catkin_ws/devel/include",
+                    "/opt/ros/kinetic/include",
+                    "/home/parallels/catkin_ws/src/Assignment/P1/beginner_tutorials/include",
+                    "/home/parallels/catkin_ws/src/edumip_balance_ros_gazebo_plugin/include",
+                    "/home/parallels/catkin_ws/src/hd_control/include",
+                    "/home/parallels/catkin_ws/src/hd_depth/include",
+                    "/home/parallels/catkin_ws/src/Assignment/P3/joy_twist/include",
+                    "/home/parallels/catkin_ws/src/Assignment/P2/learning_tf/include",
+                    "/usr/include"
+                ]
+            },
+            "includePath": [
+                "/home/parallels/catkin_ws/devel/include",
+                "/opt/ros/kinetic/include",
+                "/home/parallels/catkin_ws/src/Assignment/P1/beginner_tutorials/include",
+                "/home/parallels/catkin_ws/src/edumip_balance_ros_gazebo_plugin/include",
+                "/home/parallels/catkin_ws/src/hd_control/include",
+                "/home/parallels/catkin_ws/src/hd_depth/include",
+                "/home/parallels/catkin_ws/src/Assignment/P3/joy_twist/include",
+                "/home/parallels/catkin_ws/src/Assignment/P2/learning_tf/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 3
+}
