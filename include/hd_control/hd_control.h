@@ -1,6 +1,15 @@
 #ifndef HD_CONTROL_H
 #define HD_CONTROL_H
 
+#include <cmath>
+#include <climits>
+
+#include <std_msgs/Float64.h>
+#include <std_msgs/Bool.h>
+#include <geometry_msgs/PointStamped.h>
+#include <std_msgs/UInt8.h>
+
+#include "hd_msgs/ObstacleDetection.h"
 
 #include "hd_control/hd_drone_interface.h"
 
@@ -9,11 +18,11 @@ namespace hd_control
 class DroneControl
 {
 public:
-    DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv);
+    DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
 private:
     ~DroneControl();    
-    // ros::NodeHandle nh_;
-    // ros::NodeHandle nh_priv_("~");
+    ros::NodeHandle nh_;
+    ros::NodeHandle nh_priv_("~");
     DroneInterfacePtr drone_interface_ptr_;
 
     ros::Subscriber velocity_control_x_sub_;
@@ -36,6 +45,12 @@ private:
     bool position_track_enabled_ = false;
     bool landing_condition_met_ = false;
     bool relanding_condition_met_ = false;
+
+    int obstacle_threshold_ = 100;
+    double obstacle_running_average_ = 0;
+    double obstacle_alpha_ = 0;
+
+    void obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob);
 
     inline void velocityControlEffortXCallback(const std_msgs::Float64 &velocity_control_effort_x_msg)
     {
@@ -66,7 +81,7 @@ private:
     {
         relanding_condition_met_ = relanding_condition_met_msg.data;
     }
-};
-}
+}; // class DroneControl
+} // namespace hd_control
 
 #endif

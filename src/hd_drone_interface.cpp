@@ -1,19 +1,10 @@
 #include "hd_control/hd_drone_interface.h"
 
-namespace hd_control
+namespace hd_interface
 {
-DroneInterface::DroneInterface(ros::NodeHandle &nh, ros::NodeHandle &nh_priv)
+DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv):
+    nh_(*nh), nh_priv_(*nh_priv)
 {
-    //nh_priv_.param<std::string>("topic_from_controller", topic_from_controller_, "/hd/position_track/velocity_control_effort_x");
-
-    // velocity_control_x_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_x", 10, &velocityControlEffortXCallback);
-    // velocity_control_y_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_y", 10, &velocityControlEffortYCallback);
-    // velocity_control_yaw_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_yaw", 10, &velocityControlEffortYawCallback);
-    // position_track_enable_sub_ = nh_.subscribe("/hd/position_track/position_track_enable", 1, &positionTrackEnableCallback);
-    // landing_condition_met_sub_ = nh_.subscribe("/hd/position_track/landing_condition_met", 1, &landingConditionMetCallback);
-    // relanding_condition_met_sub_ = nh_.subscribe("/hd/position_track/relanding_condition_met", 1, &relandingConditionMetCallback);
-    // obstacle_detection_sub_ = nh_.subscribe("/hd/obstacle_avoidance/obstacles", 10, &obstcleCallback);
-
     ctrl_pub_ = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
 
     // Basic services
@@ -87,4 +78,4 @@ bool DroneInterface::resleaseControl()
 
     return true;
 }
-}
+} // namespace hd_interface
