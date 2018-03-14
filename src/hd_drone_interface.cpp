@@ -8,10 +8,10 @@ DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv):
     ctrl_pub_ = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
 
     // Basic services
-    sdk_ctrl_authority_service_ = nh.serviceClient<dji_sdk::SDKControlAuthority>("dji_sdk/sdk_control_authority");
-    drone_task_service_ = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
-    query_version_service_ = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
-    set_local_pos_reference_ = nh.serviceClient<dji_sdk::SetLocalPosRef>("dji_sdk/set_local_pos_ref");
+    sdk_ctrl_authority_service_ = nh_.serviceClient<dji_sdk::SDKControlAuthority>("dji_sdk/sdk_control_authority");
+    drone_task_service_ = nh_.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
+    query_version_service_ = nh_.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
+    set_local_pos_reference_ = nh_.serviceClient<dji_sdk::SetLocalPosRef>("dji_sdk/set_local_pos_ref");
 
     try
     {
