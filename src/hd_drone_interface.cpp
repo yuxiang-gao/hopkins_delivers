@@ -57,11 +57,7 @@ bool DroneInterface::obtainControl()
     return true;
 }
 
-bool DroneInterface::setLocalPosition()
-{
-    dji_sdk::SetLocalPosRef localPosReferenceSetter;
-    set_local_pos_reference_.call(localPosReferenceSetter);
-}
+
 
 bool DroneInterface::resleaseControl()
 {

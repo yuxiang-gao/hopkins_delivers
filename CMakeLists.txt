@@ -2,21 +2,26 @@ cmake_minimum_required(VERSION 2.8.3)
 project(hd_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  apriltags_ros
+  apriltags
   cmake_modules
   dji_sdk
   roscpp
   std_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(apriltagscpp REQUIRED)
+find_package(Eigen3 REQUIRED)
+
+set(CMAKE_AUTOMOC ON)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -105,10 +110,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES hd_control
+  INCLUDE_DIRS include
+  LIBRARIES hd_control
 #  CATKIN_DEPENDS apriltags_ros cmake_modules dji_sdk roscpp std_msgs
-#  DEPENDS system_lib
+  DEPENDS system_lib Eigen3
 )
 
 ###########
@@ -118,9 +123,29 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
+  ${Eigen3_INCLUDE_DIRS}
+  ${apriltagscpp_INCLUDE_DIRS}/apriltagscpp
 )
+add_library(libdrone_interface src/hd_drone_interface.cpp)
+target_link_libraries(libhd_drone_interface
+  ${catkin_LIBRARIES}
+  ${DJIOSDK_LIBRARIES}
+  )
+
+add_executable(drone_state_publisher_node src/hd_drone_state_publisher.cpp)
+target_link_libraries(drone_state_publisher_node
+  ${catkin_LIBRARIES}
+  ${DJIOSDK_LIBRARIES}
+  )
+
+add_executable(drone_control_node src/hd_drone_state_publisher.cpp)
+target_link_libraries(drone_control_node
+  libdrone_interface
+  ${catkin_LIBRARIES}
+  ${DJIOSDK_LIBRARIES}
+  )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
