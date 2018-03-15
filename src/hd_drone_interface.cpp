@@ -2,8 +2,7 @@
 
 namespace hd_interface
 {
-DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv):
-    nh_(*nh), nh_priv_(*nh_priv)
+DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(*nh), nh_priv_(*nh_priv)
 {
     ctrl_pub_ = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
 
@@ -15,9 +14,8 @@ DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv):
 
     try
     {
-        if (!obtainControl())
-            throw 0;
-        set_local_position();
+        if (!obtainControl()) throw 0;
+        setLocalPosition();
         ROS_INFO("Obtain control succeed. Setting local pos!");
     }
     catch (int e)
@@ -40,6 +38,7 @@ void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_
     control_pos_yaw_rate.axes.push_back(z);
     control_pos_yaw_rate.axes.push_back(yaw_rate);
     control_pos_yaw_rate.axes.push_back(flag_);
+
     ctrl_pub_.publish(control_pos_yaw_rate);
 }
 

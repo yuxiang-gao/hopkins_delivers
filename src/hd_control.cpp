@@ -2,8 +2,7 @@
 
 namespace hd_control
 {
-DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv):
-    nh_(*nh), nh_priv_(*nh_priv)
+DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv) : nh_(*nh), nh_priv_(*nh_priv)
 {
     drone_interface_ptr_.reset(new DroneInterface(nh, nh_priv));
 
@@ -15,7 +14,7 @@ DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv):
     relanding_condition_met_sub_ = nh_.subscribe("/hd/position_track/relanding_condition_met", 1, &relandingConditionMetCallback);
     obstacle_detection_sub_ = nh_.subscribe("/hd/obstacle_avoidance/obstacles", 10, &obstcleCallback);
 
-    while(ros::ok())
+    while (ros::ok())
     {
         ros::spinOnce();
         if (obstacle_detected_)
@@ -37,7 +36,8 @@ DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv):
                 drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, 0.0, velocity_control_effort_yaw_);
             }
         }
-        else continue;
+        else
+            continue;
     }
 }
 
@@ -50,7 +50,7 @@ void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &
 {
     double ob_mid_bins = 0;
     int num_bins = ob->num_bins;
-    if (num_bins%2==0)
+    if (num_bins % 2 == 0)
     {
         ob_mid_bins = ob->data[num_bins / 2] + ob->data[num_bins / 2 + 1];
         ob_mid_bins /= 2;
@@ -73,27 +73,27 @@ void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &
         // int min_dir = std::distance(ob_cnt.begin(), std::min_element(ob_cnt.begin(), ob_cnt.end()));
         // if (min_dir <= (double)num_bins/2)
         // {
-            
+
         // }
         int ob_left = 0;
         int ob_right = 0;
-        for (int i=0; i<num_bins; i++)
+        for (int i = 0; i < num_bins; i++)
         {
-            if ((i+1)<=num_bins/2)
+            if ((i + 1) <= num_bins / 2)
                 ob_left += ob->data[i];
             else
                 ob_right += ob->data[i];
         }
         if (ob_left < ob_right)
+            ROS_DEBUG("Obstcle Detected. Moving left.")
             drone_interface_ptr_->sendControlSignal(0.0, -0.2, 0.0, 0.0);
         else
+            ROS_DEBUG("Obstcle Detected. Moving right.")
             drone_interface_ptr_->sendControlSignal(0.0, 0.2, 0.0, 0.0);
-
     }
     else
     {
         obstacle_detected_ = false;
     }
-    
 }
 } // namespace hd_controldrone_interface_ptr_->sendControlSignal(0.0, -0.2, 0.0, 0.0);

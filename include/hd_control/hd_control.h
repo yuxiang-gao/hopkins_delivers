@@ -17,10 +17,11 @@ namespace hd_control
 {
 class DroneControl
 {
-public:
+  public:
     DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
-private:
-    ~DroneControl();    
+
+  private:
+    ~DroneControl();
     ros::NodeHandle nh_;
     ros::NodeHandle nh_priv_("~");
     DroneInterfacePtr drone_interface_ptr_;
