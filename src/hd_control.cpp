@@ -5,24 +5,30 @@ namespace hd_control
 {
 DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv) : nh_(*nh), nh_priv_(*nh_priv)
 {
+    // initiate drone interface
     drone_interface_ptr_.reset(new hd_interface::DroneInterface(nh, nh_priv));
 
-    attitude_sub_       = nh.subscribe("dji_sdk/attitude", 10, &attitudeCallback);
-    gps_sub_            = nh.subscribe("dji_sdk/gps_position", 10, &gpsCallback);
-    flight_status_sub_   = nh.subscribe("dji_sdk/flight_status", 10, &flightStatusCallback);
-    
-    velocity_control_x_sub_             = nh_.subscribe("/hd/position_track/velocity_control_effort_x", 10, &velocityControlEffortXCallback);
-    velocity_control_y_sub_             = nh_.subscribe("/hd/position_track/velocity_control_effort_y", 10, &velocityControlEffortYCallback);
-    velocity_control_yaw_sub_           = nh_.subscribe("/hd/position_track/velocity_control_effort_yaw", 10, &velocityControlEffortYawCallback);
-    position_track_enable_sub_          = nh_.subscribe("/hd/position_track/position_track_enable", 1, &positionTrackEnableCallback);
-    landing_condition_met_sub_          = nh_.subscribe("/hd/position_track/landing_condition_met", 1, &landingConditionMetCallback);
-    relanding_condition_met_sub_        = nh_.subscribe("/hd/position_track/relanding_condition_met", 1, &relandingConditionMetCallback);
-    obstacle_detection_sub_             = nh_.subscribe("/hd/obstacle_avoidance/obstacles", 10, &obstcleCallback);
+    attitude_sub_ = nh.subscribe("dji_sdk/attitude", 10, &attitudeCallback);
+    gps_sub_ = nh.subscribe("dji_sdk/gps_position", 10, &gpsCallback);
+    flight_status_sub_ = nh.subscribe("dji_sdk/flight_status", 10, &flightStatusCallback);
 
+    velocity_control_x_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_x", 10, &velocityControlEffortXCallback);
+    velocity_control_y_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_y", 10, &velocityControlEffortYCallback);
+    velocity_control_yaw_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_yaw", 10, &velocityControlEffortYawCallback);
+    
+    position_track_enable_sub_ = nh_.subscribe("/hd/position_track/position_track_enable", 1, &positionTrackEnableCallback);
+    landing_condition_met_sub_ = nh_.subscribe("/hd/position_track/landing_condition_met", 1, &landingConditionMetCallback);
+    relanding_condition_met_sub_ = nh_.subscribe("/hd/position_track/relanding_condition_met", 1, &relandingConditionMetCallback);
+    
+    obstacle_detection_sub_ = nh_.subscribe("/hd/perception/stereo_obstacles", 10, &obstcleCallback);
+
+    // take off
     try
     {
-        if (!monitoredTakeoff()) throw 0;
-        else ROS_INFO("Takeoff succeed!");
+        if (!monitoredTakeoff())
+            throw 0;
+        else
+            ROS_INFO("Takeoff succeed!");
     }
     catch (int e)
     {
@@ -91,7 +97,6 @@ DroneControl::~DroneControl()
     drone_interface_ptr_.reset();
 }
 
-
 void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob)
 {
     double ob_mid_bins = 0;
@@ -132,9 +137,8 @@ void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &
         }
         if (ob_left < ob_right)
             ROS_DEBUG("Obstcle Detected. Moving left.")
-            drone_interface_ptr_->sendControlSignal(0.0, -0.2, 0.0, 0.0);
-        else
-            ROS_DEBUG("Obstcle Detected. Moving right.")
+        drone_interface_ptr_->sendControlSignal(0.0, -0.2, 0.0, 0.0);
+        else ROS_DEBUG("Obstcle Detected. Moving right.")
             drone_interface_ptr_->sendControlSignal(0.0, 0.2, 0.0, 0.0);
     }
     else
@@ -145,38 +149,38 @@ void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &
 
 bool DroneControl::monitoredTakeoff()
 {
-  ros::Time start_time = ros::Time::now();
+    ros::Time start_time = ros::Time::now();
 
-  float home_altitude = current_gps_.altitude;
-  if(!drone_interface_ptr_->takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_TAKEOFF))
-  {
-    return false;
-  }
+    float home_altitude = current_gps_.altitude;
+    if (!drone_interface_ptr_->takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_TAKEOFF))
+    {
+        return false;
+    }
 
-  ros::Duration(0.01).sleep();
-  ros::spinOnce();
-
-  // Step 1: If M100 is not in the air after 10 seconds, fail.
-  while (ros::Time::now() - start_time < ros::Duration(10))
-  {
     ros::Duration(0.01).sleep();
     ros::spinOnce();
-  }
 
-  if(flight_status_ != DJISDK::M100FlightStatus::M100_STATUS_IN_AIR ||
-      current_gps_.altitude - home_altitude < 1.0)
-  {
-    ROS_ERROR("Takeoff failed.");
-    return false;
-  }
-  else
-  {
-    start_time = ros::Time::now();
-    ROS_INFO("Successful takeoff!");
-    ros::spinOnce();
-  }
+    // Step 1: If M100 is not in the air after 10 seconds, fail.
+    while (ros::Time::now() - start_time < ros::Duration(10))
+    {
+        ros::Duration(0.01).sleep();
+        ros::spinOnce();
+    }
 
-  return true;
+    if (flight_status_ != DJISDK::M100FlightStatus::M100_STATUS_IN_AIR ||
+        current_gps_.altitude - home_altitude < 1.0)
+    {
+        ROS_ERROR("Takeoff failed.");
+        return false;
+    }
+    else
+    {
+        start_time = ros::Time::now();
+        ROS_INFO("Successful takeoff!");
+        ros::spinOnce();
+    }
+
+    return true;
 }
 } // namespace hd_control
 
@@ -186,6 +190,6 @@ int main(int argc, char **argv)
     ROS_INFO("Starting Drone Controller.");
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv("~");
-    
+
     hd_control::DroneControl drone_control(nh, nh_priv);
 }

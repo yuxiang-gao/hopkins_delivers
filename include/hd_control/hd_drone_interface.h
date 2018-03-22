@@ -56,7 +56,7 @@ class DroneInterface
     bool obtainControl();
     bool releaseControl();
     bool setLocalPosition();
-    bool takeoff_land(int task);
+    bool takeoffLand(int task);
 
 }; // class DroneInterface
 
