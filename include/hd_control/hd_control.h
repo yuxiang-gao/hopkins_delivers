@@ -24,7 +24,7 @@ class DroneControl
     ~DroneControl();
     ros::NodeHandle nh_;
     ros::NodeHandle nh_priv_("~");
-    DroneInterfacePtr drone_interface_ptr_;
+    hd_interface::DroneInterfacePtr drone_interface_ptr_;
 
     ros::Subscriber velocity_control_x_sub_;
     ros::Subscriber velocity_control_y_sub_;
@@ -35,9 +35,19 @@ class DroneControl
     ros::Subscriber relanding_condition_met_sub_;
     ros::Subscriber obstacle_detection_sub_;
 
+    ros::Subscriber attitude_sub_;
+    ros::Subscriber gps_sub_;
+    ros::Subscriber flight_status_sub_;
+    
+
     double velocity_control_effort_x_;
     double velocity_control_effort_y_;
     double velocity_control_effort_yaw_;
+
+    uint8_t flight_status_ = 255;
+
+    sensor_msgs::NavSatFix current_gps_;
+    geometry_msgs::Quaternion current_atti_;
 
     const double descending_speed_ = -0.5;
     const double ascending_speed_ = 0.5;
@@ -53,35 +63,53 @@ class DroneControl
 
     void obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob);
 
-    inline void velocityControlEffortXCallback(const std_msgs::Float64 &velocity_control_effort_x_msg)
+    void velocityControlEffortXCallback(const std_msgs::Float64 &velocity_control_effort_x_msg)
     {
         velocity_control_effort_x_ = velocity_control_effort_x_msg.data;
     }
 
-    inline void velocityControlEffortYCallback(const std_msgs::Float64 &velocity_control_effort_y_msg)
+    void velocityControlEffortYCallback(const std_msgs::Float64 &velocity_control_effort_y_msg)
     {
         velocity_control_effort_y_ = velocity_control_effort_y_msg.data;
     }
 
-    inline void velocityControlEffortYawCallback(const std_msgs::Float64 &velocity_control_effort_yaw_msg)
+    void velocityControlEffortYawCallback(const std_msgs::Float64 &velocity_control_effort_yaw_msg)
     {
         velocity_control_effort_yaw_ = velocity_control_effort_yaw_msg.data;
     }
 
-    inline void positionTrackEnableCallback(const std_msgs::Bool &position_track_enable_msg)
+    void positionTrackEnableCallback(const std_msgs::Bool &position_track_enable_msg)
     {
         position_track_enabled_ = position_track_enable_msg.data;
     }
 
-    inline void landingConditionMetCallback(const std_msgs::Bool &landing_condition_met_msg)
+    void landingConditionMetCallback(const std_msgs::Bool &landing_condition_met_msg)
     {
         landing_condition_met_ = landing_condition_met_msg.data;
     }
 
-    inline void relandingConditionMetCallback(const std_msgs::Bool &relanding_condition_met_msg)
+    void relandingConditionMetCallback(const std_msgs::Bool &relanding_condition_met_msg)
     {
         relanding_condition_met_ = relanding_condition_met_msg.data;
     }
+
+    void attitudeCallback(const geometry_msgs::QuaternionStamped::ConstPtr& msg)
+    {
+        current_atti_ = msg->quaternion;
+    }
+
+    void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+    {
+        static ros::Time start_time = ros::Time::now();
+        ros::Duration elapsed_time = ros::Time::now() - start_time;
+        current_gps_ = *msg;
+    }
+
+    void flightStatusCallback(const std_msgs::UInt8::ConstPtr& msg)
+    {
+        flight_status_ = msg->data;
+    }
+
 }; // class DroneControl
 } // namespace hd_control
 

@@ -14,7 +14,8 @@ DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : 
 
     try
     {
-        if (!obtainControl()) throw 0;
+        if (!obtainControl())
+            throw 0;
         setLocalPosition();
         ROS_INFO("Obtain control succeed. Setting local pos!");
     }
@@ -57,8 +58,6 @@ bool DroneInterface::obtainControl()
     return true;
 }
 
-
-
 bool DroneInterface::resleaseControl()
 {
     dji_sdk::SDKControlAuthority authority;
@@ -73,4 +72,28 @@ bool DroneInterface::resleaseControl()
 
     return true;
 }
+
+bool DroneInterface::setLocalPosition()
+{
+    dji_sdk::SetLocalPosRef localPosReferenceSetter;
+    set_local_pos_reference.call(localPosReferenceSetter);
+}
+
+bool DroneInterface::takeoffLand(int task)
+{
+    dji_sdk::DroneTaskControl droneTaskControl;
+
+    droneTaskControl.request.task = task;
+
+    drone_task_service.call(droneTaskControl);
+
+    if (!droneTaskControl.response.result)
+    {
+        ROS_ERROR("takeoff_land fail");
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace hd_interface

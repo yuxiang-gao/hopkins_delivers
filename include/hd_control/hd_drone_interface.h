@@ -32,6 +32,7 @@ class DroneInterface
   public:
     DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
     void sendControlSignal(double x, double y, double z, double yaw);
+    bool monitoredTakeoff();
 
   private:
     ~DroneInterface();
@@ -55,6 +56,7 @@ class DroneInterface
     bool obtainControl();
     bool releaseControl();
     bool setLocalPosition();
+    bool takeoff_land(int task);
 
 }; // class DroneInterface
 
