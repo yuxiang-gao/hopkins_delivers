@@ -7,11 +7,13 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/QuaternionStamped.h>
 #include <geometry_msgs/Point.h>
 #include <std_msgs/UInt8.h>
 
 #include "hd_msgs/ObstacleDetection.h"
 #include "hd_control/hd_drone_interface.h"
+#include "hd_control/hd_state.h"
 
 namespace hd_control
 {
@@ -19,11 +21,11 @@ class DroneControl
 {
   public:
     DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
-
-  private:
     ~DroneControl();
+  private:
+    
     ros::NodeHandle nh_;
-    ros::NodeHandle nh_priv_("~");
+    ros::NodeHandle nh_priv_;
     hd_interface::DroneInterfacePtr drone_interface_ptr_;
 
     ros::Subscriber velocity_control_x_sub_;
@@ -67,7 +69,7 @@ class DroneControl
 
     void obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob);
 
-    void repulsoveForceCallback(const geometry_msgs::PointStamped::ConstPtr &rep);
+    void repulsiveForceCallback(const geometry_msgs::PointStamped::ConstPtr &rep);
 
     void velocityControlEffortXCallback(const std_msgs::Float64 &velocity_control_effort_x_msg)
     {

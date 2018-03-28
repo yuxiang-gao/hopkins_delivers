@@ -1,28 +1,28 @@
 #include "hd_control/hd_control.h"
 #define TEST 1
-#define MISSION_TEST 1
+#define MISSION_TEST 0
 namespace hd_control
 {
-DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv) : nh_(*nh), nh_priv_(*nh_priv), drone_state_(std::make_pair(StateConst::DroneState::STATE_UNARMED, StateConst::PackageState::PACKAGE_OFF))
+DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(*nh), nh_priv_(*nh_priv), drone_state_(std::make_pair(StateConst::DroneState::STATE_ON_GROUND, StateConst::PackageState::PACKAGE_OFF))
 {
     // initiate drone interface
     drone_interface_ptr_.reset(new hd_interface::DroneInterface(nh, nh_priv));
 
-    attitude_sub_ = nh.subscribe("dji_sdk/attitude", 10, &attitudeCallback);
-    gps_sub_ = nh.subscribe("dji_sdk/gps_position", 10, &gpsCallback);
-    flight_status_sub_ = nh.subscribe("dji_sdk/flight_status", 10, &flightStatusCallback);
+    attitude_sub_ = nh_.subscribe("dji_sdk/attitude", 10, &DroneControl::attitudeCallback, this);
+    gps_sub_ = nh_.subscribe("dji_sdk/gps_position", 10, &DroneControl::gpsCallback, this);
+    flight_status_sub_ = nh_.subscribe("dji_sdk/flight_status", 10, &DroneControl::flightStatusCallback, this);
 
-    velocity_control_x_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_x", 10, &velocityControlEffortXCallback);
-    velocity_control_y_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_y", 10, &velocityControlEffortYCallback);
-    velocity_control_yaw_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_yaw", 10, &velocityControlEffortYawCallback);
+    velocity_control_x_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_x", 10, &DroneControl::velocityControlEffortXCallback, this);
+    velocity_control_y_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_y", 10, &DroneControl::velocityControlEffortYCallback, this);
+    velocity_control_yaw_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_yaw", 10, &DroneControl::velocityControlEffortYawCallback, this);
     
-    position_track_enable_sub_ = nh_.subscribe("/hd/position_track/position_track_enable", 1, &positionTrackEnableCallback);
-    landing_condition_met_sub_ = nh_.subscribe("/hd/position_track/landing_condition_met", 1, &landingConditionMetCallback);
-    relanding_condition_met_sub_ = nh_.subscribe("/hd/position_track/relanding_condition_met", 1, &relandingConditionMetCallback);
+    position_track_enable_sub_ = nh_.subscribe("/hd/position_track/position_track_enable", 1, &DroneControl::positionTrackEnableCallback, this);
+    landing_condition_met_sub_ = nh_.subscribe("/hd/position_track/landing_condition_met", 1, &DroneControl::landingConditionMetCallback, this);
+    relanding_condition_met_sub_ = nh_.subscribe("/hd/position_track/relanding_condition_met", 1, &DroneControl::relandingConditionMetCallback, this);
     
-    obstacle_detection_sub_ = nh_.subscribe("/hd/perception/stereo_obstacles", 10, &obstcleCallback);
+    obstacle_detection_sub_ = nh_.subscribe("/hd/perception/stereo_obstacles", 10, &DroneControl::obstacleCallback, this);
 
-    repulsive force_sub_ = nh_.subscribe("/hd/perception/repulsive_force", 10, &repulsiveForceCallback);
+    repulsive_force_sub_ = nh_.subscribe("/hd/perception/repulsive_force", 10, &DroneControl::repulsiveForceCallback, this);
 
     // grab package & take off
     try
@@ -120,6 +120,11 @@ DroneControl::~DroneControl()
     drone_interface_ptr_.reset();
 }
 
+void DroneControl::repulsiveForceCallback(const geometry_msgs::PointStamped::ConstPtr &rep)
+{
+    ROS_INFO("haha");
+}
+
 void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob)
 {
     double ob_mid_bins = 0;
@@ -134,7 +139,7 @@ void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &
         ob_mid_bins = ob->data[num_bins / 2 + 1];
     }
 
-    obstacle_running_average_ = (1 - obstacle_alpha) * obstacle_running_average_ + obstacle_alpha_ * ob_mid_bins;
+    obstacle_running_average_ = (1 - obstacle_alpha_) * obstacle_running_average_ + obstacle_alpha_ * ob_mid_bins;
 
     if (obstacle_running_average_ > obstacle_threshold_)
     {
@@ -159,10 +164,15 @@ void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &
                 ob_right += ob->data[i];
         }
         if (ob_left < ob_right)
-            ROS_DEBUG("Obstcle Detected. Moving left.")
-        drone_interface_ptr_->sendControlSignal(0.0, -0.2, 0.0, 0.0);
-        else ROS_DEBUG("Obstcle Detected. Moving right.")
+        {
+            ROS_DEBUG("Obstcle Detected. Moving left.");
+            drone_interface_ptr_->sendControlSignal(0.0, -0.2, 0.0, 0.0);
+        }
+        else 
+        {
+            ROS_DEBUG("Obstcle Detected. Moving right.");
             drone_interface_ptr_->sendControlSignal(0.0, 0.2, 0.0, 0.0);
+        }
     }
     else
     {
@@ -214,5 +224,5 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::NodeHandle nh_priv("~");
 
-    hd_control::DroneControl drone_control(nh, nh_priv);
+    hd_control::DroneControl drone_control(&nh, &nh_priv);
 }

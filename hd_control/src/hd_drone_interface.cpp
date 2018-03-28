@@ -4,7 +4,7 @@ namespace hd_interface
 {
 DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(*nh), nh_priv_(*nh_priv)
 {
-    ctrl_pub_ = nh.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
+    ctrl_pub_ = nh_.advertise<sensor_msgs::Joy>("dji_sdk/flight_control_setpoint_generic", 10);
 
     // Basic services
     sdk_ctrl_authority_service_ = nh_.serviceClient<dji_sdk::SDKControlAuthority>("dji_sdk/sdk_control_authority");
@@ -12,7 +12,7 @@ DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : 
     query_version_service_ = nh_.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
     set_local_pos_reference_ = nh_.serviceClient<dji_sdk::SetLocalPosRef>("dji_sdk/set_local_pos_ref");
     
-    grab_package_service_ = nh.serviceClient<hd_msgs::EMSerivice>("/hd/package/em_control");
+    grab_package_service_ = nh_.serviceClient<hd_msgs::EMService>("/hd/package/em_control");
 
     try
     {
@@ -86,7 +86,7 @@ bool DroneInterface::obtainControl()
     return true;
 }
 
-bool DroneInterface::resleaseControl()
+bool DroneInterface::releaseControl()
 {
     dji_sdk::SDKControlAuthority authority;
     authority.request.control_enable = 0;
@@ -113,7 +113,7 @@ bool DroneInterface::takeoffLand(int task)
 
     droneTaskControl.request.task = task;
 
-    drone_task_service.call(droneTaskControl);
+    drone_task_service_.call(droneTaskControl);
 
     if (!droneTaskControl.response.result)
     {

@@ -21,6 +21,7 @@
 #include <sensor_msgs/NavSatFix.h>
 #include <geometry_msgs/PoseArray.h>
 #include <std_msgs/Bool.h>
+#include <hd_msgs/EMService.h>
 
 #include <Eigen/Geometry>
 
@@ -32,14 +33,16 @@ class DroneInterface
 {
   public:
     DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
+    ~DroneInterface();
     void sendControlSignal(double x, double y, double z, double yaw);
     bool grabPackage();
     bool releasePackage();
+    bool takeoffLand(int task);
 
   private:
-    ~DroneInterface();
+    
     ros::NodeHandle nh_;
-    ros::NodeHandle nh_priv_("~");
+    ros::NodeHandle nh_priv_;
 
     ros::Publisher ctrl_pub_;
 
@@ -60,7 +63,7 @@ class DroneInterface
     bool obtainControl();
     bool releaseControl();
     bool setLocalPosition();
-    bool takeoffLand(int task);
+    
 
 }; // class DroneInterface
 

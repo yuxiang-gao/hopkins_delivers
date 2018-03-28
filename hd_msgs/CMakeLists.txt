@@ -1,27 +1,22 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(hd_control)
+project(hd_msgs)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+# add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  apriltags
-  cmake_modules
-  dji_sdk
-  roscpp
-  std_msgs
   geometry_msgs
+  message_generation
+  message_runtime
+  sensor_msgs
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS system)
-find_package(apriltagscpp REQUIRED)
-find_package(Eigen3 REQUIRED)
-
-set(CMAKE_AUTOMOC ON)
+# find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -54,18 +49,18 @@ set(CMAKE_AUTOMOC ON)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  ObstacleDetection.msg
+  Sonar.msg
+  )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
+add_service_files(
+   FILES
+   EMService.srv
 #   Service2.srv
-# )
+ )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -75,10 +70,12 @@ set(CMAKE_AUTOMOC ON)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+ generate_messages(
+ DEPENDENCIES
+ geometry_msgs
+ sensor_msgs
+ std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -110,46 +107,25 @@ set(CMAKE_AUTOMOC ON)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES hd_control
-#  CATKIN_DEPENDS apriltags_ros cmake_modules dji_sdk roscpp std_msgs
-  DEPENDS system_lib Eigen3
+#  INCLUDE_DIRS include
+#  LIBRARIES hd_msgs
+# CATKIN_DEPENDS geometry_msgs message_generation message_runtime sensor_msgs std_msgs
+#  DEPENDS system_lib
 )
-
-###########
+#######
 ## Build ##
 ###########
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include
+# include
   ${catkin_INCLUDE_DIRS}
-  ${Eigen3_INCLUDE_DIRS}
-  ${apriltagscpp_INCLUDE_DIRS}/apriltagscpp
 )
-add_library(libdrone_interface src/hd_drone_interface.cpp)
-target_link_libraries(libhd_drone_interface
-  ${catkin_LIBRARIES}
-  ${DJIOSDK_LIBRARIES}
-  )
-
-add_executable(drone_state_publisher_node src/hd_drone_state_publisher.cpp)
-target_link_libraries(drone_state_publisher_node
-  ${catkin_LIBRARIES}
-  ${DJIOSDK_LIBRARIES}
-  )
-
-add_executable(drone_control_node src/hd_drone_state_publisher.cpp)
-target_link_libraries(drone_control_node
-  libdrone_interface
-  ${catkin_LIBRARIES}
-  ${DJIOSDK_LIBRARIES}
-  )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/hd_control.cpp
+#   src/${PROJECT_NAME}/hd_msgs.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -160,7 +136,7 @@ target_link_libraries(drone_control_node
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/hd_control_node.cpp)
+#add_executable(hd_msgs src/EMService_request.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -173,9 +149,7 @@ target_link_libraries(drone_control_node
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+ #target_link_libraries(hd_msgs ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -217,7 +191,7 @@ target_link_libraries(drone_control_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_hd_control.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_hd_msgs.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
