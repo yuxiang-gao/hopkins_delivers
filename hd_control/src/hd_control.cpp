@@ -28,13 +28,16 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     try
     {
         if (!drone_interface_ptr_->grabPackage())
-            throw 0;
+        {   
+            //throw 0;
+            ROS_INFO("Grab");
+        }
         else
         {
             ROS_INFO("Grab package succeed!");
             drone_state_.second = StateConst::PackageState::PACKAGE_ON;
         }
-        ros::Duration(1.0).sleep();
+        ros::Duration(5.0).sleep();
 
         if (!monitoredTakeoff())
             throw 1;

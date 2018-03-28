@@ -299,7 +299,6 @@ void flightStatusCallback(const std_msgs::UInt8& flight_status_msg)
 
 void descend()
 {
-  std::cout << "landing_enable? " << landing_enabled << std::endl;
   if(landing_enabled)
   {
     landing_condition_met_msg.data = true;
@@ -309,7 +308,6 @@ void descend()
     relanding_condition_met_pub.publish(relanding_condition_met_msg);
 
     relanding = false;
-    std::cout << "descending" << std::endl;
     ROS_DEBUG_THROTTLE(2, "Descending");
   }
   
@@ -327,7 +325,6 @@ void ascend()
 
     relanding = true;
     ROS_DEBUG_THROTTLE(2, "Ascending");
-    std::cout << "ascending" << std::endl;
   }
 }
 
@@ -340,7 +337,7 @@ void hover()
   relanding_condition_met_pub.publish(relanding_condition_met_msg);
 
   relanding = false;
-  std::cout << "hovering" << std::endl;
+  ROS_DEBUG_THROTTLE(2, "hovering");
 }
 
 void print_parameters()
@@ -453,7 +450,7 @@ int main(int argc, char **argv)
 	
     if(flight_status != 3)
     {
-      std::cout << "flight status" << flight_status << std::endl;
+      // std::cout << "flight status" << flight_status << std::endl;
       continue;
     }
     
@@ -569,7 +566,7 @@ int main(int argc, char **argv)
 
       setpoint_x = average_landing_center_position(0) + local_x;
       setpoint_y = average_landing_center_position(1) + local_y;
-std::cout << "average_landing_position  " << (average_landing_center_position(0)) << " ," << (average_landing_center_position(1)) <<" ," << (average_landing_center_position(2)) << std::endl;
+      std::cout << "average_landing_position  " << (average_landing_center_position(0)) << " ," << (average_landing_center_position(1)) <<" ," << (average_landing_center_position(2)) << std::endl;
       std::cout << "setpoint  " << setpoint_x << " ," << setpoint_y<<","<<setpoint_yaw<< std::endl;
 
       setpoint_x_msg.data = setpoint_x;
