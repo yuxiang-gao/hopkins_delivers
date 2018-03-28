@@ -1,0 +1,7 @@
+<library path="lib/libobstacle_detection_nodelet">
+  <class name="hd_depth/obstacle_detection_nodelet" type="hd_depth::ObstacleDetectionNodelet" base_class_type="nodelet::Nodelet">
+  <description>
+    This is my nodelet.
+  </description>
+  </class>
+</library>

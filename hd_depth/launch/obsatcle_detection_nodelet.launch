@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="nodelet" type="nodelet" name="standalone_nodelet"  args="manager" output="screen"/>
+
+  <node pkg="nodelet" type="nodelet" name="obstacle_detection_nodelet" args="load hd_depth/obstacle_detection_nodelet standalone_nodelet" output="screen">
+    <remap from="/depth_in" to="/zed/depth/depth_registered"/>
+  </node>                 
+</launch>
