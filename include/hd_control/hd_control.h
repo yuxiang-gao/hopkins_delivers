@@ -7,10 +7,10 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/Point.h>
 #include <std_msgs/UInt8.h>
 
 #include "hd_msgs/ObstacleDetection.h"
-
 #include "hd_control/hd_drone_interface.h"
 
 namespace hd_control
@@ -34,12 +34,12 @@ class DroneControl
     ros::Subscriber landing_condition_met_sub_;
     ros::Subscriber relanding_condition_met_sub_;
     ros::Subscriber obstacle_detection_sub_;
+    ros::Subscriber repulsive_force_sub_;
 
     ros::Subscriber attitude_sub_;
     ros::Subscriber gps_sub_;
     ros::Subscriber flight_status_sub_;
     
-
     double velocity_control_effort_x_;
     double velocity_control_effort_y_;
     double velocity_control_effort_yaw_;
@@ -61,7 +61,13 @@ class DroneControl
     double obstacle_running_average_ = 0;
     double obstacle_alpha_ = 0;
 
+    StateConst::StatePair drone_state_;
+
+    bool monitoredTakeoff();
+
     void obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob);
+
+    void repulsoveForceCallback(const geometry_msgs::PointStamped::ConstPtr &rep);
 
     void velocityControlEffortXCallback(const std_msgs::Float64 &velocity_control_effort_x_msg)
     {

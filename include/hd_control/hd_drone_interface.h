@@ -20,6 +20,7 @@
 #include <sensor_msgs/Joy.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <geometry_msgs/PoseArray.h>
+#include <std_msgs/Bool.h>
 
 #include <Eigen/Geometry>
 
@@ -32,7 +33,8 @@ class DroneInterface
   public:
     DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
     void sendControlSignal(double x, double y, double z, double yaw);
-    bool monitoredTakeoff();
+    bool grabPackage();
+    bool releasePackage();
 
   private:
     ~DroneInterface();
@@ -45,6 +47,8 @@ class DroneInterface
     ros::ServiceClient sdk_ctrl_authority_service_;
     ros::ServiceClient drone_task_service_;
     ros::ServiceClient query_version_service_;
+
+    ros::ServiceClient grab_package_service_;
 
     uint8_t flag_ = (DJISDK::VERTICAL_VELOCITY |
                      DJISDK::HORIZONTAL_VELOCITY |

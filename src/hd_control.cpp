@@ -3,7 +3,7 @@
 #define MISSION_TEST 1
 namespace hd_control
 {
-DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv) : nh_(*nh), nh_priv_(*nh_priv)
+DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv) : nh_(*nh), nh_priv_(*nh_priv), drone_state_(std::make_pair(StateConst::DroneState::STATE_UNARMED, StateConst::PackageState::PACKAGE_OFF))
 {
     // initiate drone interface
     drone_interface_ptr_.reset(new hd_interface::DroneInterface(nh, nh_priv));
@@ -22,19 +22,42 @@ DroneControl::DroneControl(ros::NodeHandle &nh, ros::NodeHandle &nh_priv) : nh_(
     
     obstacle_detection_sub_ = nh_.subscribe("/hd/perception/stereo_obstacles", 10, &obstcleCallback);
 
-    // take off
+    repulsive force_sub_ = nh_.subscribe("/hd/perception/repulsive_force", 10, &repulsiveForceCallback);
+
+    // grab package & take off
     try
     {
-        if (!monitoredTakeoff())
+        if (!drone_interface_ptr_->grabPackage())
             throw 0;
         else
+        {
+            ROS_INFO("Grab package succeed!");
+            drone_state_.second = StateConst::PackageState::PACKAGE_ON;
+        }
+        ros::Duration(1.0).sleep();
+
+        if (!monitoredTakeoff())
+            throw 1;
+        else
+        {
             ROS_INFO("Takeoff succeed!");
+            drone_state_.first = StateConst::DroneState::STATE_IN_AIR;
+        }
+           
+        
     }
     catch (int e)
     {
-        ROS_ERROR("Takeoff FAILED!");
+        if (e==0)
+            ROS_ERROR("Grab package FAILED!");
+        else if (e==1)
+            ROS_ERROR("Takeoff FAILED!");
     }
 
+    // set goal
+
+
+    //
 #if TEST
     while (ros::ok())
     {
