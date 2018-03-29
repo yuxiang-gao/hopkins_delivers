@@ -139,12 +139,12 @@ target_link_libraries(libdrone_interface
   )
 add_dependencies(libdrone_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(drone_state_publisher_node src/hd_drone_state_publisher.cpp)
-target_link_libraries(drone_state_publisher_node
-  ${catkin_LIBRARIES}
-  ${DJIOSDK_LIBRARIES}
-  )
-add_dependencies(drone_state_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_executable(drone_state_publisher_node src/hd_drone_state_publisher.cpp)
+# target_link_libraries(drone_state_publisher_node
+#   ${catkin_LIBRARIES}
+#   ${DJIOSDK_LIBRARIES}
+#   )
+# add_dependencies(drone_state_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(drone_control_node src/hd_control.cpp)
 target_link_libraries(drone_control_node

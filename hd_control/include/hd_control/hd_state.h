@@ -5,31 +5,29 @@
 
 namespace  hd_control
 {
-struct StateConst
+enum class DroneStates
 {
-    enum class DroneState
-    {
-        STATE_ON_GROUND = 0,
-        STATE_IN_AIR = 1,
-        STATE_WAYPOINT_MISSION = 2,
-        STATE_OBSTACLE = 3,
-        STATE_WAYPOINT_GOAL = 4,
-        STATE_SEACHING = 5,
-        STATE_ALIGNING = 6,
-        STATE_DESCENDING = 7,
-        STATE_ON_GOAL = 8
-    }; // enum drone_state_t
+    STATE_ON_GROUND = 0, // on ground
+    STATE_IN_AIR = 1,    // taken off
+    STATE_IN_MISSION = 2, //start waypoint mission
+    STATE_OBSTACLE = 3,   //obstacle
+    STATE_NEAR_GOAL = 4,  //within certain bound to the gps goal
+    STATE_SEACHING = 5,  // seraching for tag
+    STATE_ALIGNING = 6,  //position tracking
+    STATE_DESCENDING = 7, //landing
+    STATE_ON_GOAL = 8     //landed
+}; // enum class DroneState
 
-    enum class PackageState
-    {
-        PACKAGE_OFF = 0,
-        PACKAGE_ON = 1
-    }; // enum package_state_t
+struct HDStates
+{
+    bool package_state;
+    DroneStates drone_state;
+    HDStates(DroneStates d, bool p): drone_state(d), package_state(p)
+    {}
+    HDStates()
+    {}
 
-    typedef boost::shared_ptr<DroneState> DroneStatePtr;
-    typedef boost::shared_ptr<PackageState> PackageStatePtr;
-    typedef std::pair<DroneState, PackageState> StatePair;
-}; // struct StateNames
-} // namespace  hd_state_machine
+} HDStates;
+} // namespace  hd_control
 
 #endif

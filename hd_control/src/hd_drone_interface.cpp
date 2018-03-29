@@ -11,7 +11,7 @@ DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : 
     drone_task_service_ = nh_.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
     query_version_service_ = nh_.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
     set_local_pos_reference_ = nh_.serviceClient<dji_sdk::SetLocalPosRef>("dji_sdk/set_local_pos_ref");
-    
+
     grab_package_service_ = nh_.serviceClient<hd_msgs::EMService>("/hd/package/em_control");
 
     try
@@ -40,7 +40,19 @@ void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_
     control_pos_yaw_rate.axes.push_back(y);
     control_pos_yaw_rate.axes.push_back(z);
     control_pos_yaw_rate.axes.push_back(yaw_rate);
-    control_pos_yaw_rate.axes.push_back(flag_);
+    control_pos_yaw_rate.axes.push_back(flag_body_);
+
+    ctrl_pub_.publish(control_pos_yaw_rate);
+}
+
+void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate)
+{
+    sensor_msgs::Joy control_pos_yaw_rate;
+    control_pos_yaw_rate.axes.push_back(x);
+    control_pos_yaw_rate.axes.push_back(y);
+    control_pos_yaw_rate.axes.push_back(z);
+    control_pos_yaw_rate.axes.push_back(yaw_rate);
+    control_pos_yaw_rate.axes.push_back(flag_ENU_);
 
     ctrl_pub_.publish(control_pos_yaw_rate);
 }

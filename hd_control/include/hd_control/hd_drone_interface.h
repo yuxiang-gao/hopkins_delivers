@@ -27,7 +27,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace hd_interface
+namespace hd_control
 {
 class DroneInterface
 {
@@ -35,6 +35,7 @@ class DroneInterface
     DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
     ~DroneInterface();
     void sendControlSignal(double x, double y, double z, double yaw);
+    void sendENUControlSignal(double x, double y, double z, double yaw);
     bool grabPackage();
     bool releasePackage();
     bool takeoffLand(int task);
@@ -53,11 +54,16 @@ class DroneInterface
 
     ros::ServiceClient grab_package_service_;
 
-    uint8_t flag_ = (DJISDK::VERTICAL_VELOCITY |
+    uint8_t flag_body_ = (DJISDK::VERTICAL_VELOCITY |
                      DJISDK::HORIZONTAL_VELOCITY |
                      DJISDK::YAW_RATE |
                      DJISDK::HORIZONTAL_BODY |
                      //DJISDK::VERTICAL_BODY   |
+                     DJISDK::STABLE_ENABLE);
+    uint8_t flag_enu_ = (DJISDK::VERTICAL_VELOCITY |
+                     DJISDK::HORIZONTAL_VELOCITY |
+                     DJISDK::YAW_RATE |
+                     DJISDK::HORIZONTAL_GROUND |
                      DJISDK::STABLE_ENABLE);
 
     bool obtainControl();

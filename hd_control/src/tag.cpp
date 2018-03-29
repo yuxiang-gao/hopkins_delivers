@@ -52,6 +52,7 @@ void Tag::setFound()
 {
 	found_ = true;
 }
+
 Eigen::Vector3d Tag::getLandingCenterPosition()
 {
 	if(!to_landing_center_translation_set_)
@@ -63,6 +64,7 @@ Eigen::Vector3d Tag::getLandingCenterPosition()
 	landing_center_position_ = orientation_drone_frame_.matrix() * to_landing_center_translation_ + position_drone_frame_;
 	return landing_center_position_;
 }
+
 Eigen::Quaternion<double> Tag::getLandingCenterOrientation()
 {
 	// orientation_drone_frame_ = camera_to_drone_transformation * orientation_camera_frame_.toRotationMatrix();

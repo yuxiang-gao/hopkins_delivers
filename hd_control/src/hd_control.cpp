@@ -1,12 +1,13 @@
 #include "hd_control/hd_control.h"
 #define TEST 1
-#define MISSION_TEST 0
+#define MISSION_TEST 1
 namespace hd_control
 {
-DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(*nh), nh_priv_(*nh_priv), drone_state_(std::make_pair(StateConst::DroneState::STATE_ON_GROUND, StateConst::PackageState::PACKAGE_OFF))
+DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(*nh), nh_priv_(*nh_priv), drone_state_(DroneStates::STATE_ON_GROUND, false)
 {
     // initiate drone interface
-    drone_interface_ptr_.reset(new hd_interface::DroneInterface(nh, nh_priv));
+    drone_interface_ptr_.reset(new DroneInterface(nh, nh_priv));
+    mission_ptr_.reset(new Mission(drone_interface_ptr_));
 
     attitude_sub_ = nh_.subscribe("dji_sdk/attitude", 10, &DroneControl::attitudeCallback, this);
     gps_sub_ = nh_.subscribe("dji_sdk/gps_position", 10, &DroneControl::gpsCallback, this);
@@ -35,7 +36,7 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
         else
         {
             ROS_INFO("Grab package succeed!");
-            drone_state_.second = StateConst::PackageState::PACKAGE_ON;
+            drone_state_.package_state = true;
         }
         ros::Duration(5.0).sleep();
 
@@ -44,10 +45,8 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
         else
         {
             ROS_INFO("Takeoff succeed!");
-            drone_state_.first = StateConst::DroneState::STATE_IN_AIR;
+            drone_state_.drone_state = DroneState::STATE_IN_AIR;
         }
-           
-        
     }
     catch (int e)
     {
@@ -180,6 +179,39 @@ void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &
     else
     {
         obstacle_detected_ = false;
+    }
+}
+
+void DroneControl::gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+{
+    static ros::Time start_time = ros::Time::now();
+    ros::Duration elapsed_time = ros::Time::now() - start_time;
+    current_gps_ = *msg;
+
+    // Down sampled to 50Hz loop
+    if(elapsed_time > ros::Duration(0.02))
+    {
+        start_time = ros::Time::now();
+        switch(mission_ptr_->state)
+        {
+        case 0:
+            break;
+
+        case 1:
+            if(!mission_ptr_->finished)
+            {
+                mission_ptr_->step();
+            }
+            else
+            {
+                mission_ptr_->reset();
+                mission_ptr_->start_gps_location = current_gps;
+                mission_ptr_->setTarget(20, 0, 0, 0);
+                mission_ptr_->state = 2;
+                ROS_INFO("##### Start route %d ....", mission_ptr_->state);
+            }
+            break;
+        }
     }
 }
 

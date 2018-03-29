@@ -23,10 +23,10 @@ class DroneControl
     DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
     ~DroneControl();
   private:
-    
     ros::NodeHandle nh_;
     ros::NodeHandle nh_priv_;
-    hd_interface::DroneInterfacePtr drone_interface_ptr_;
+    DroneInterfacePtr drone_interface_ptr_;
+    MissionPtr mission_ptr_;
 
     ros::Subscriber velocity_control_x_sub_;
     ros::Subscriber velocity_control_y_sub_;
@@ -63,7 +63,7 @@ class DroneControl
     double obstacle_running_average_ = 0;
     double obstacle_alpha_ = 0;
 
-    StateConst::StatePair drone_state_;
+    HDStates drone_state_;
 
     bool monitoredTakeoff();
 
@@ -89,11 +89,19 @@ class DroneControl
     void positionTrackEnableCallback(const std_msgs::Bool &position_track_enable_msg)
     {
         position_track_enabled_ = position_track_enable_msg.data;
+        if (position_track_enabled_ && drone_state_.first==StateConst::DroneState::STATE_SEARCHING)
+        {
+            drone_state_.first = StateConst::DroneState::STATE_ALIGNING;
+        }
     }
 
     void landingConditionMetCallback(const std_msgs::Bool &landing_condition_met_msg)
     {
         landing_condition_met_ = landing_condition_met_msg.data;
+        if (landing_condition_met_ && drone_state_.first==StateConst::DroneState::STATE_ALIGNING)
+        {
+            drone_state_.first = StateConst::DroneState::STATE_DESCENDING;
+        }
     }
 
     void relandingConditionMetCallback(const std_msgs::Bool &relanding_condition_met_msg)
@@ -104,13 +112,6 @@ class DroneControl
     void attitudeCallback(const geometry_msgs::QuaternionStamped::ConstPtr& msg)
     {
         current_atti_ = msg->quaternion;
-    }
-
-    void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)
-    {
-        static ros::Time start_time = ros::Time::now();
-        ros::Duration elapsed_time = ros::Time::now() - start_time;
-        current_gps_ = *msg;
     }
 
     void flightStatusCallback(const std_msgs::UInt8::ConstPtr& msg)
