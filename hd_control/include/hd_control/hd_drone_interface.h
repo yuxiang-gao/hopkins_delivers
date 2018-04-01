@@ -21,7 +21,7 @@
 #include <sensor_msgs/NavSatFix.h>
 #include <geometry_msgs/PoseArray.h>
 #include <std_msgs/Bool.h>
-#include <hd_msgs/EMService.h>
+#include <hd_msgs/EMPick.h>
 
 #include <Eigen/Geometry>
 

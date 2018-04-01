@@ -1,0 +1,40 @@
+<launch>
+
+<arg
+	name="switch"
+	default="0"
+/>
+
+<node
+ pkg="hd_msgs"
+ type="EM_pick_server"
+ name="EM_pick_server"
+ output="screen"
+ required = "true"
+ />
+ 
+
+<node
+ pkg="rosserial_python"
+ type="serial_node.py"
+ name="Sonar_Drive"
+ output="screen"
+ respawn = "true"
+ >
+ <param name="port" value="/dev/ttyACM0"/>
+ <param name="baud" value="9600"/>
+</node>
+
+<group if="$(arg switch)">
+<node
+	name="EM_pick_clients"
+	pkg="hd_msgs"
+	type="EM_pick_clients"
+	output="screen"
+    args = "1"
+/>
+</group>
+
+
+
+</launch>

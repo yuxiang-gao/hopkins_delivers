@@ -12,7 +12,7 @@ DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : 
     query_version_service_ = nh_.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
     set_local_pos_reference_ = nh_.serviceClient<dji_sdk::SetLocalPosRef>("dji_sdk/set_local_pos_ref");
     
-    grab_package_service_ = nh_.serviceClient<hd_msgs::EMService>("/hd/package/em_control");
+    grab_package_service_ = nh_.serviceClient<hd_msgs::EMPick>("/hd/package/em_control");
 
     try
     {
@@ -47,7 +47,7 @@ void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_
 
 bool DroneInterface::grabPackage()
 {
-    hd_msgs::EMService em_service;
+    hd_msgs::EMPick em_service;
     em_service.request.command = true;
     grab_package_service_.call(em_service);
     if (!em_service.response.result)
@@ -60,7 +60,7 @@ bool DroneInterface::grabPackage()
 
 bool DroneInterface::releasePackage()
 {
-    hd_msgs::EMService em_service;
+    hd_msgs::EMPick em_service;
     em_service.request.command = false;
     grab_package_service_.call(em_service);
     if (!em_service.response.result)
