@@ -8,14 +8,17 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
+#include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/PointStamped.h>
+#include <nav_msgs/OccupancyGrid.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <Eigen/Geometry> 
-
+#include <Eigen/Dense>
 
 namespace hd_depth
 {
+typedef Eigen::Matrix<long int, 3, 6, Eigen::RowMajor> GridMap;
 class ObstacleDetection
 {
 public: 
@@ -59,6 +62,7 @@ private:
     //     return grid;
     // }
     void constructPointMsg(const Eigen::Vector3d &point, geometry_msgs::PointStamped &msg);
+    void constructMapMsg(const GridMap &map, nav_msgs::OccupancyGrid &msg);
 }; // class ObstacleDetection
 } // namespace hd_depth
 

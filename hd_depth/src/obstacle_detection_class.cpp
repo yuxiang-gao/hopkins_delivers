@@ -9,14 +9,20 @@
 namespace hd_depth
 {
 ObstacleDetection::ObstacleDetection (ros::NodeHandle *nh, ros::NodeHandle *nh_priv, const std::string & name):
-    nh_(*nh), nh_priv_(*nh_priv), it_(nh_), openni_enc_(false), name_(name), depth_scale_(openni_enc_?1000.0:1.0),
-    thresh_min_(0.5), thresh_max_(2.0)
+    nh_(*nh), 
+    nh_priv_(*nh_priv), 
+    it_(nh_), 
+    openni_enc_(false), 
+    name_(name), 
+    depth_scale_(openni_enc_?1000.0:1.0),
+    thresh_min_(0.5), 
+    thresh_max_(2.0)
 {
     ROS_DEBUG_ONCE_NAMED(name_, "Starting obstacle avoidance.");
     image_sub_ = it_.subscribe("depth_in", 1, &ObstacleDetection::imageCallback, this);
-    nh_priv_.param("openni_enc", openni_enc_, openni_enc_);
+    // nh_priv_.param("openni_enc", openni_enc_, openni_enc_);
     // image_pub_ = it_.advertise("out", 1);
-    obstacle_pub_ = nh_.advertise<hd_msgs::ObstacleDetection>("/hd/perception/stereo_obstacle", 10);
+    obstacle_pub_ = nh_.advertise<nav_msgs::OccupancyGrid>("/hd/perception/stereo_obstacle", 10);
     repulsive_pub_ = nh_.advertise<geometry_msgs::PointStamped>("/hd/perception/potfield/stereo_obstacle", 10);
 
     if (openni_enc_) 
@@ -49,8 +55,6 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     }
     // cv::Mat depth = cv_ptr->image;
     // depth.setTo(0.0, depth > 15.0);
-
-   
     //typedef unsigned short PIXEL_TYPE;
     typedef float PIXEL_TYPE;
     cv::Mat_<PIXEL_TYPE> & depth = (cv::Mat_<PIXEL_TYPE> & )cv_ptr->image;
@@ -67,6 +71,7 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     Eigen::Vector3d repulsive_vector(0, 0, 0);
     //std::vector<int> grid_x = buildGrid1d(num_grids, cropped_width);
     std::vector<std::vector<int>> hist(num_rows, std::vector<int>(num_grids, 0));
+    GridMap map = GridMap::Zero();
     //std::fill(hist.begin(), hist.end(), 0); 
     std::array<float, num_rows + 1> thresholds = {0.5, 2.0, 3.5, 5.0};
     int bin_width = cropped_width / num_grids;
@@ -103,24 +108,24 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
         {
             for ( int u=offset_left+i*bin_width; u<(i==num_grids-1?depth.cols-offset_right:offset_left+(i+1)*bin_width); u++ )
             {
-		        //std::cout << "hxw: " <<depth.rows<<", " << depth.cols << ", " << bin_width << std::endl;
+                //std::cout << "hxw: " <<depth.rows<<", " << depth.cols << ", " << bin_width << std::endl;
                 float d = (float)(depth.ptr<PIXEL_TYPE> ( v )[u]) / depth_scale_; // depth value in 16UC1
-                if ( std::isnan(d) || d < thresholds[0] || d > thresholds[num_rows]) continue;
-             
+                if ( std::isnan(d) || d < thresholds[0] || d > thresholds[num_rows]) 
+                    continue;
                 if ( d > thresholds[0] && d < thresholds[1]) 
                 {
-                    hist[0][i]++;
-                    //hist[1][i]++;
-                    //hist[2][i]++;
+                    map(0, i)++;
+                    map(1, i)++;
+                    map(2, i)++;
                 }
                 else if ( d > thresholds[1] && d < thresholds[2])
                 {
-                    hist[1][i]++;
-                    //hist[2][i]++;
+                    map(1, i)++;
+                    map(2, i)++;
                 }
                 else if ( d > thresholds[2] && d < thresholds[3])
                 {
-                    hist[2][i]++;
+                    map(2, i)++;
                 }
             }   
         }
@@ -128,18 +133,19 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     
     //hd_msgs::ObstacleDetection ob;
     //ob.header.stamp = ros::Time::now();
-    //ROS_DEBUG_STREAM_NAMED(name_, "hist: " << hist[0] );
-    for (int i=0; i<num_rows; i++)
-    {
-        std::cout << "row[" << i <<"]: "; 
-        for (const auto b: hist[i])
-        {
-            //ob.data.push_back(b);
-            std::cout << b << ", ";
-        }
-        std::cout << ". " << std::endl;
-    }
+    ROS_DEBUG_STREAM_NAMED(name_, "hist: " << map );
+    // for (int i=0; i<num_rows; i++)
+    // {
+    //     std::cout << "row[" << i <<"]: "; 
+    //     for (const auto b: hist[i])
+    //     {
+    //         //ob.data.push_back(b);
+    //         std::cout << b << ", ";
+    //     }
+    //     std::cout << ". " << std::endl;
+    // }
     //obstacle_pub_.publish(ob);
+
 #endif
 #if DEBUG
     std::chrono::steady_clock::time_point t2 =std:: chrono::steady_clock::now();
@@ -157,5 +163,17 @@ void ObstacleDetection::constructPointMsg(const Eigen::Vector3d &point, geometry
     msg.point.x = point[0];
     msg.point.y = point[1];
     msg.point.z = point[2];
+}
+
+void ObstacleDetection::constructMapMsg(const GridMap &map, nav_msgs::OccupancyGrid &msg)
+{
+    msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = 'odom';
+    msg.info.width = 6;
+    msg.info.height = 3;
+    map = map / map.maxCoeff() * 100;
+    int data[map.size()] = { }; 
+    Eigen::Map<GridMap>(data, map.rows(), map.cols()) = map;
+    msg.data = data;
 }
 } // namespace hd_depth

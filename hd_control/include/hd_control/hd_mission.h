@@ -30,6 +30,14 @@ const float rad2deg = 180.0/C_PI;
 
 typedef boost::shared_ptr<Mission> MissionPtr;
 
+typedef strcut FlightTarget
+{
+    float x;
+    float y;
+    float z;
+    float yaw;
+} FlightTarget;
+
 class Mission
 {
 public:
@@ -38,6 +46,7 @@ public:
     // where state 0 means the mission is note started
     // and each state i is for the process of moving to a target point.
     int state;
+    std::vector<FlightTarget> flight_plan_;
 
     int inbound_counter;
     int outbound_counter;
@@ -49,19 +58,33 @@ public:
     float target_yaw;
 
     sensor_msgs::NavSatFix start_gps_location_;
-    sensor_msgs::NavSatFix current_gps_;
+    geometry_msgs::Point start_local_position_;
 
     DroneInterfacePtr drone_interface_ptr_;
 
     bool finished;
 
-    Mission(DroneInterfacePtr drone_interface_ptr) : state(0), inbound_counter(0), outbound_counter(0), break_counter(0),
-                target_offset_x(0.0), target_offset_y(0.0), target_offset_z(0.0),
-                finished(false), drone_interface_ptr_(drone_interface_ptr)
+    Mission(DroneInterfacePtr drone_interface_ptr, sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos) : 
+        state(0), 
+        inbound_counter(0), 
+        outbound_counter(0), 
+        break_counter(0),
+        target_offset_x(0.0), 
+        target_offset_y(0.0), 
+        target_offset_z(0.0),
+        finished(false), 
+        drone_interface_ptr_(drone_interface_ptr)
+        start_gps_location_(current_gps),
+        start_local_position_(current_local_pos)
     {
     }
 
     void step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti);
+
+    void setTargets(std::vector<FlightTarget> flight_targets)
+    {
+        flight_plan_ = flight_targets;
+    }
 
     void setTarget(float x, float y, float z, float yaw)
     {
@@ -81,12 +104,14 @@ public:
         // target_yaw      = yaw;
     }
 
-    void reset()
+    void reset(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos)
     {
         inbound_counter = 0;
         outbound_counter = 0;
         break_counter = 0;
         finished = false;
+        start_gps_location_ = current_gps;
+        start_local_position_ = current_local_pos;
     }
 };
 

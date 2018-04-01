@@ -43,13 +43,22 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
     double yOffsetRemaining = target_offset_y - localOffset.y;
     double zOffsetRemaining = target_offset_z - localOffset.z;
 
-    double yawDesiredRad     = deg2rad * target_yaw;
-    double yawThresholdInRad = deg2rad * yawThresholdInDeg;
-    double yawInRad          = toEulerAngle(current_atti).z;
+
 
     ROS_INFO_THROTTLE(2, "-----x=%f, y=%f, z=%f, yaw=%f ...", localOffset.x, localOffset.y, localOffset.z, yawInRad);
     ROS_INFO_THROTTLE(2, "+++++dx=%f, dy=%f, dz=%f, dyaw=%f ...", xOffsetRemaining, yOffsetRemaining, zOffsetRemaining, yawInRad - yawDesiredRad);
 
+    if (std::abs(xOffsetRemaining) >= 5 * sppedFactor || std::abs(yOffsetRemaining) >= 5 * speedFactor)
+    {
+
+    }
+    else
+    {
+        double yawDesiredRad     = deg2rad * target_yaw;
+        double yawThresholdInRad = deg2rad * yawThresholdInDeg;
+        double yawInRad          = toEulerAngle(current_atti).z;
+    }
+    
     if (std::abs(xOffsetRemaining) >= speedFactor)
         xCmd = (xOffsetRemaining>0) ? speedFactor : -1 * speedFactor;
     else
