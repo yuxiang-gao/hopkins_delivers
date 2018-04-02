@@ -32,10 +32,10 @@ typedef boost::shared_ptr<Mission> MissionPtr;
 
 typedef strcut FlightTarget
 {
-    float x;
-    float y;
-    float z;
-    float yaw;
+    float x = 0;
+    float y = 0;
+    float z = 0;
+    float yaw = 0;
 } FlightTarget;
 
 class Mission
@@ -47,6 +47,7 @@ public:
     // and each state i is for the process of moving to a target point.
     int state;
     std::vector<FlightTarget> flight_plan_;
+    std::vector<sensor_msgs::NavSatFix> gps_flight_plan_;
 
     int inbound_counter;
     int outbound_counter;
@@ -81,9 +82,24 @@ public:
 
     void step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti);
 
-    void setTargets(std::vector<FlightTarget> flight_targets)
+    void setPlan(std::vector<FlightTarget> flight_targets)
     {
+        state = 0;
         flight_plan_ = flight_targets;
+    }
+
+    void setPlan(std::vector<sensor_msgs::NavSatFix> flight_targets)
+    {
+        state = 0;
+        gps_flight_plan_ = flight_targets;
+    }
+
+    void setTarget(FlightTarget ft)
+    {
+        target_offset_x = ft.x;
+        target_offset_y = ft.y;
+        target_offset_z = ft.z;
+        target_yaw      = ft.yaw;
     }
 
     void setTarget(float x, float y, float z, float yaw)
@@ -94,14 +110,14 @@ public:
         target_yaw      = yaw;
     }
 
-    void setTarget(sensor_msgs::NavSatFix& target)
+    void setTarget(sensor_msgs::NavSatFix &target)
     {
         eometry_msgs::Vector3  target_offset;
         localOffsetFromGpsOffset(target_offset, target, start_gps_location_);
         target_offset_x = target_offset.x;
         target_offset_y = target_offset.y;
         target_offset_z = target_offset.z;
-        // target_yaw      = yaw;
+        target_yaw      = yaw;
     }
 
     void reset(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos)

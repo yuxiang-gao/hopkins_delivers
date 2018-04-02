@@ -14,6 +14,7 @@
 #include "hd_msgs/ObstacleDetection.h"
 #include "hd_control/hd_drone_interface.h"
 #include "hd_control/hd_state.h"
+#include "hd_control/hd_mission.h"
 
 namespace hd_control
 {
@@ -41,6 +42,7 @@ class DroneControl
     ros::Subscriber attitude_sub_;
     ros::Subscriber gps_sub_;
     ros::Subscriber flight_status_sub_;
+    ros::Subscriber local_position_sub_;
     
     double velocity_control_effort_x_;
     double velocity_control_effort_y_;
@@ -50,6 +52,7 @@ class DroneControl
 
     sensor_msgs::NavSatFix current_gps_;
     geometry_msgs::Quaternion current_atti_;
+    geometry_msgs::Point current_local_pos_;
 
     const double descending_speed_ = -0.5;
     const double ascending_speed_ = 0.5;
@@ -70,6 +73,11 @@ class DroneControl
     void obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob);
 
     void repulsiveForceCallback(const geometry_msgs::PointStamped::ConstPtr &rep);
+
+    void localPositionCallback(const geometry_msgs::PointStamped::ConstPtr& msg)
+    {
+        current_local_pos_ = msg->point;
+    }
 
     void velocityControlEffortXCallback(const std_msgs::Float64 &velocity_control_effort_x_msg)
     {

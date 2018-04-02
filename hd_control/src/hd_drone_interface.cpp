@@ -33,26 +33,32 @@ DroneInterface::~DroneInterface()
         ROS_INFO("Release control succeed.");
 }
 
-void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_rate)
+void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_rate, bool use_rate = True)
 {
     sensor_msgs::Joy control_pos_yaw_rate;
     control_pos_yaw_rate.axes.push_back(x);
     control_pos_yaw_rate.axes.push_back(y);
     control_pos_yaw_rate.axes.push_back(z);
     control_pos_yaw_rate.axes.push_back(yaw_rate);
-    control_pos_yaw_rate.axes.push_back(flag_body_);
+    if use_rate
+        control_pos_yaw_rate.axes.push_back(flag_fru_rate_);
+    else
+        control_pos_yaw_rate.axes.push_back(flag_fru_angle_);
 
     ctrl_pub_.publish(control_pos_yaw_rate);
 }
 
-void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate)
+void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate, bool use_rate = True)
 {
     sensor_msgs::Joy control_pos_yaw_rate;
     control_pos_yaw_rate.axes.push_back(x);
     control_pos_yaw_rate.axes.push_back(y);
     control_pos_yaw_rate.axes.push_back(z);
     control_pos_yaw_rate.axes.push_back(yaw_rate);
-    control_pos_yaw_rate.axes.push_back(flag_ENU_);
+    if use_rate
+        control_pos_yaw_rate.axes.push_back(flag_enu_rate_);
+    else
+        control_pos_yaw_rate.axes.push_back(flag_enu_angle_);
 
     ctrl_pub_.publish(control_pos_yaw_rate);
 }

@@ -34,8 +34,8 @@ class DroneInterface
   public:
     DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
     ~DroneInterface();
-    void sendControlSignal(double x, double y, double z, double yaw);
-    void sendENUControlSignal(double x, double y, double z, double yaw);
+    void sendControlSignal(double x, double y, double z, double yaw, bool use_rate = True);
+    void sendENUControlSignal(double x, double y, double z, double yaw, bool use_rate = True);
     bool grabPackage();
     bool releasePackage();
     bool takeoffLand(int task);
@@ -54,15 +54,24 @@ class DroneInterface
 
     ros::ServiceClient grab_package_service_;
 
-    uint8_t flag_body_ = (DJISDK::VERTICAL_VELOCITY |
+    uint8_t flag_fru_rate_ = (DJISDK::VERTICAL_VELOCITY |
                      DJISDK::HORIZONTAL_VELOCITY |
                      DJISDK::YAW_RATE |
                      DJISDK::HORIZONTAL_BODY |
-                     //DJISDK::VERTICAL_BODY   |
                      DJISDK::STABLE_ENABLE);
-    uint8_t flag_enu_ = (DJISDK::VERTICAL_VELOCITY |
+    uint8_t flag_enu_rate_ = (DJISDK::VERTICAL_VELOCITY |
                      DJISDK::HORIZONTAL_VELOCITY |
                      DJISDK::YAW_RATE |
+                     DJISDK::HORIZONTAL_GROUND |
+                     DJISDK::STABLE_ENABLE);
+    uint8_t flag_fru_angle_ = (DJISDK::VERTICAL_VELOCITY |
+                     DJISDK::HORIZONTAL_VELOCITY |
+                     DJISDK::YAW_ANGLE  |
+                     DJISDK::HORIZONTAL_BODY |
+                     DJISDK::STABLE_ENABLE);
+    uint8_t flag_enu_angle_ = (DJISDK::VERTICAL_VELOCITY |
+                     DJISDK::HORIZONTAL_VELOCITY |
+                     DJISDK::YAW_ANGLE |
                      DJISDK::HORIZONTAL_GROUND |
                      DJISDK::STABLE_ENABLE);
 

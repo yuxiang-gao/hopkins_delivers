@@ -48,9 +48,9 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
     ROS_INFO_THROTTLE(2, "-----x=%f, y=%f, z=%f, yaw=%f ...", localOffset.x, localOffset.y, localOffset.z, yawInRad);
     ROS_INFO_THROTTLE(2, "+++++dx=%f, dy=%f, dz=%f, dyaw=%f ...", xOffsetRemaining, yOffsetRemaining, zOffsetRemaining, yawInRad - yawDesiredRad);
 
-    if (std::abs(xOffsetRemaining) >= 5 * sppedFactor || std::abs(yOffsetRemaining) >= 5 * speedFactor)
+    if (std::abs(xOffsetRemaining) >= 5 * speedFactor || std::abs(yOffsetRemaining) >= 5 * speedFactor)
     {
-
+        //TODO
     }
     else
     {
@@ -90,14 +90,7 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
     }
     else //break_counter = 0, not in break stage
     {
-        sensor_msgs::Joy controlPosYaw;
-
-
-        controlPosYaw.axes.push_back(xCmd);
-        controlPosYaw.axes.push_back(yCmd);
-        controlPosYaw.axes.push_back(zCmd);
-        controlPosYaw.axes.push_back(yawDesiredRad);
-        ctrlPosYawPub.publish(controlPosYaw);
+        drone_interface_ptr_->sendENUControlSignal(xCmd, yCmd, zCmd, yawDesiredRad, False);
     }
 
     if (std::abs(xOffsetRemaining) < 0.5 &&
@@ -112,8 +105,8 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
     {
         if (inbound_counter != 0)
         {
-        //! 2. Start incrementing an out-of-bounds counter
-        outbound_counter ++;
+            //! 2. Start incrementing an out-of-bounds counter
+            outbound_counter ++;
         }
     }
 

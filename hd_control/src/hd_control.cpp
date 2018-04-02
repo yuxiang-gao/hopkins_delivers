@@ -12,6 +12,7 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     attitude_sub_ = nh_.subscribe("dji_sdk/attitude", 10, &DroneControl::attitudeCallback, this);
     gps_sub_ = nh_.subscribe("dji_sdk/gps_position", 10, &DroneControl::gpsCallback, this);
     flight_status_sub_ = nh_.subscribe("dji_sdk/flight_status", 10, &DroneControl::flightStatusCallback, this);
+    local_position_sub_ = nh.subscribe("dji_sdk/local_position", 10, &DroneControl::localPositionCallback, this);
 
     velocity_control_x_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_x", 10, &DroneControl::velocityControlEffortXCallback, this);
     velocity_control_y_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_y", 10, &DroneControl::velocityControlEffortYCallback, this);
@@ -55,8 +56,17 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
         else if (e==1)
             ROS_ERROR("Takeoff FAILED!");
     }
-
     // set goal
+    ros::spinOnce();
+    mission_ptr_.reset(new Mission(drone_interface_ptr_, &current_gps_, &current_local_pos_));
+    FlightTarget flight_target;
+    flight_target.x = 5;
+    std::vector<FlightTarget> flight_plan;
+    flight_plan.push_back(flight_target);
+    mission_ptr_->setPlan(flight_plan);
+
+    ros::Rate loop_rate(50);
+    
 
 
     //
@@ -111,8 +121,7 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
                 drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, 0.0, velocity_control_effort_yaw_);
             }
         }
-        else
-            continue;
+        loop_rate.sleep();
     }
 #endif
 }
@@ -188,31 +197,31 @@ void DroneControl::gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)
     ros::Duration elapsed_time = ros::Time::now() - start_time;
     current_gps_ = *msg;
 
-    // Down sampled to 50Hz loop
-    if(elapsed_time > ros::Duration(0.02))
-    {
-        start_time = ros::Time::now();
-        switch(mission_ptr_->state)
-        {
-        case 0:
-            break;
+    // // Down sampled to 50Hz loop
+    // if(elapsed_time > ros::Duration(0.02))
+    // {
+    //     start_time = ros::Time::now();
+    //     switch(mission_ptr_->state)
+    //     {
+    //     case 0:
+    //         break;
 
-        case 1:
-            if(!mission_ptr_->finished)
-            {
-                mission_ptr_->step();
-            }
-            else
-            {
-                mission_ptr_->reset();
-                mission_ptr_->start_gps_location = current_gps;
-                mission_ptr_->setTarget(20, 0, 0, 0);
-                mission_ptr_->state = 2;
-                ROS_INFO("##### Start route %d ....", mission_ptr_->state);
-            }
-            break;
-        }
-    }
+    //     case 1:
+    //         if(!mission_ptr_->finished)
+    //         {
+    //             mission_ptr_->step();
+    //         }
+    //         else
+    //         {
+    //             mission_ptr_->reset();
+    //             mission_ptr_->start_gps_location = current_gps;
+    //             mission_ptr_->setTarget(20, 0, 0, 0);
+    //             mission_ptr_->state = 2;
+    //             ROS_INFO("##### Start route %d ....", mission_ptr_->state);
+    //         }
+    //         break;
+    //     }
+    // }
 }
 
 bool DroneControl::monitoredTakeoff()
