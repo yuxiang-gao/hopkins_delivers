@@ -1,6 +1,6 @@
 #include "hd_control/hd_drone_interface.h"
 
-namespace hd_interface
+namespace hd_control
 {
 DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(*nh), nh_priv_(*nh_priv)
 {
@@ -33,14 +33,14 @@ DroneInterface::~DroneInterface()
         ROS_INFO("Release control succeed.");
 }
 
-void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_rate, bool use_rate = True)
+void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_rate, bool use_rate)
 {
     sensor_msgs::Joy control_pos_yaw_rate;
     control_pos_yaw_rate.axes.push_back(x);
     control_pos_yaw_rate.axes.push_back(y);
     control_pos_yaw_rate.axes.push_back(z);
     control_pos_yaw_rate.axes.push_back(yaw_rate);
-    if use_rate
+    if (use_rate) // default
         control_pos_yaw_rate.axes.push_back(flag_fru_rate_);
     else
         control_pos_yaw_rate.axes.push_back(flag_fru_angle_);
@@ -48,14 +48,14 @@ void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_
     ctrl_pub_.publish(control_pos_yaw_rate);
 }
 
-void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate, bool use_rate = True)
+void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate, bool use_rate)
 {
     sensor_msgs::Joy control_pos_yaw_rate;
     control_pos_yaw_rate.axes.push_back(x);
     control_pos_yaw_rate.axes.push_back(y);
     control_pos_yaw_rate.axes.push_back(z);
     control_pos_yaw_rate.axes.push_back(yaw_rate);
-    if use_rate
+    if (use_rate) // default
         control_pos_yaw_rate.axes.push_back(flag_enu_rate_);
     else
         control_pos_yaw_rate.axes.push_back(flag_enu_angle_);

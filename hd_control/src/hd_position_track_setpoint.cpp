@@ -50,6 +50,7 @@ ros::Publisher yaw_state_pub;
 ros::Publisher x_state_pub;
 ros::Publisher y_state_pub;
 ros::Publisher z_state_pub;
+ros::Publisher track_enabled_pub;
 
 double gimbal_roll;
 double gimbal_yaw;
@@ -530,7 +531,7 @@ int main(int argc, char **argv)
             else //found_16h5 not found
             {
                 ROS_DEBUG_THROTTLE(1, "Found 36h11" );
-                ROS_DEBUG_STREAM_THROTTLE("average_landing_position  " << (average_landing_center_position(0)) << " ," << (average_landing_center_position(1)) << " ," << (average_landing_center_position(2)) );
+                ROS_DEBUG_STREAM_THROTTLE(1, "average_landing_position  " << (average_landing_center_position(0)) << " ," << (average_landing_center_position(1)) << " ," << (average_landing_center_position(2)) );
                 // std::cout << "local_position  " << local_x << " ," << local_y << std::endl;
                 // std::cout << "landing_threshold_36h11  " << landing_threshold_36h11 << std::endl;
                 if (fabs(average_landing_center_position(0)) < landing_threshold_36h11 && fabs(average_landing_center_position(1)) < landing_threshold_36h11)

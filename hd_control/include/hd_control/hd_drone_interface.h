@@ -34,8 +34,8 @@ class DroneInterface
   public:
     DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv);
     ~DroneInterface();
-    void sendControlSignal(double x, double y, double z, double yaw, bool use_rate = True);
-    void sendENUControlSignal(double x, double y, double z, double yaw, bool use_rate = True);
+    void sendControlSignal(double x, double y, double z, double yaw, bool use_rate = true);
+    void sendENUControlSignal(double x, double y, double z, double yaw, bool use_rate = true);
     bool grabPackage();
     bool releasePackage();
     bool takeoffLand(int task);

@@ -15,6 +15,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <Eigen/Geometry> 
 #include <Eigen/Dense>
+#include <Eigen/Core>
 
 namespace hd_depth
 {

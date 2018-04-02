@@ -167,12 +167,13 @@ void ObstacleDetection::constructPointMsg(const Eigen::Vector3d &point, geometry
 
 void ObstacleDetection::constructMapMsg(const GridMap &map, nav_msgs::OccupancyGrid &msg)
 {
+    GridMap map_msg = map;
     msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = 'odom';
+    msg.header.frame_id = "odom";
     msg.info.width = 6;
     msg.info.height = 3;
-    map = map / map.maxCoeff() * 100;
-    int data[map.size()] = { }; 
+    map_msg  = map_msg / map_msg.maxCoeff() * 100;
+    int *data = new int [map.size()]; 
     Eigen::Map<GridMap>(data, map.rows(), map.cols()) = map;
     msg.data = data;
 }
