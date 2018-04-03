@@ -7,19 +7,26 @@
 //#include <nodelet/nodelet.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
+
+#include <tf/tf.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/CameraInfo.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <std_msgs/Float64.h>
+
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+
 #include <Eigen/Geometry> 
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
 namespace hd_depth
 {
-typedef Eigen::Matrix<long int, 3, 6, Eigen::RowMajor> GridMap;
+typedef Eigen::Matrix<int, 3, 6, Eigen::RowMajor> GridMap;
+typedef Eigen::Matrix<double, 3, 6, Eigen::RowMajor> GridMapd;
 class ObstacleDetection
 {
 public: 
@@ -39,12 +46,14 @@ private:
     bool openni_enc_;
     float depth_scale_;
     double thresh_min_, thresh_max_;
+    sensor_msgs::CameraInfo::ConstPtr camera_info_;
 
     // intrinsic
-    const double cx_ = 325.5;
-    const double cy_ = 253.5;
-    const double fx_ = 518.0;
-    const double fy_ = 519.0;
+    // const double cx_ = 325.5;
+    // const double cy_ = 253.5;
+    // const double fx_ = 518.0;
+    // const double fy_ = 519.0;
+    double fx_, fy_, cx_, cy_;
 
     // obstacle potential thresh
     
@@ -62,8 +71,8 @@ private:
     //     }
     //     return grid;
     // }
-    void constructPointMsg(const Eigen::Vector3d &point, geometry_msgs::PointStamped &msg);
-    void constructMapMsg(const GridMap &map, nav_msgs::OccupancyGrid &msg);
+    void constructPointMsg(const Eigen::Vector3d &point, geometry_msgs::PointStamped *msg);
+    void constructMapMsg(GridMapd &map, nav_msgs::OccupancyGrid *msg);
 }; // class ObstacleDetection
 } // namespace hd_depth
 

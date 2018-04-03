@@ -16,9 +16,15 @@ ObstacleDetection::ObstacleDetection (ros::NodeHandle *nh, ros::NodeHandle *nh_p
     name_(name), 
     depth_scale_(openni_enc_?1000.0:1.0),
     thresh_min_(0.5), 
-    thresh_max_(2.0)
+    thresh_max_(2.0),
+    camera_info_(ros::topic::waitForMessage<sensor_msgs::CameraInfo>("/zed/depth/camera_info", ros::Duration(10))),
+    fx_(camera_info_->K[0]),
+    fy_(camera_info_->K[4]),
+    cx_(camera_info_->K[2]),
+    cy_(camera_info_->K[5])
 {
     ROS_DEBUG_ONCE_NAMED(name_, "Starting obstacle avoidance.");
+
     image_sub_ = it_.subscribe("depth_in", 1, &ObstacleDetection::imageCallback, this);
     // nh_priv_.param("openni_enc", openni_enc_, openni_enc_);
     // image_pub_ = it_.advertise("out", 1);
@@ -60,7 +66,7 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     cv::Mat_<PIXEL_TYPE> & depth = (cv::Mat_<PIXEL_TYPE> & )cv_ptr->image;
     //cv::Mat depth = cv_ptr->image;
     int offset_up = depth.rows / 10;
-    int offset_down = offset_up;
+    int offset_down = offset_up * 2;
     int offset_left = 0;
     int offset_right = 0;
     int cropped_height = depth.rows - offset_down - offset_up;
@@ -71,7 +77,7 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     Eigen::Vector3d repulsive_vector(0, 0, 0);
     //std::vector<int> grid_x = buildGrid1d(num_grids, cropped_width);
     std::vector<std::vector<int>> hist(num_rows, std::vector<int>(num_grids, 0));
-    GridMap map = GridMap::Zero();
+    GridMapd map = GridMapd::Zero();
     //std::fill(hist.begin(), hist.end(), 0); 
     std::array<float, num_rows + 1> thresholds = {0.5, 2.0, 3.5, 5.0};
     int bin_width = cropped_width / num_grids;
@@ -133,7 +139,8 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     
     //hd_msgs::ObstacleDetection ob;
     //ob.header.stamp = ros::Time::now();
-    ROS_DEBUG_STREAM_NAMED(name_, "hist: " << map );
+    //NODELET_INFO_STREAM_NAMED(name_, "hist: " << map );
+    std::cout << "map: " << map << std::endl;
     // for (int i=0; i<num_rows; i++)
     // {
     //     std::cout << "row[" << i <<"]: "; 
@@ -145,6 +152,10 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     //     std::cout << ". " << std::endl;
     // }
     //obstacle_pub_.publish(ob);
+    nav_msgs::OccupancyGrid *new_msg = new nav_msgs::OccupancyGrid();
+    constructMapMsg(map, new_msg);
+    obstacle_pub_.publish(*new_msg);
+
 
 #endif
 #if DEBUG
@@ -157,24 +168,27 @@ void ObstacleDetection::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     //image_pub_.publish(cv_ptr->toImageMsg());
 } // image_callback
 
-void ObstacleDetection::constructPointMsg(const Eigen::Vector3d &point, geometry_msgs::PointStamped &msg)
+void ObstacleDetection::constructPointMsg(const Eigen::Vector3d &point, geometry_msgs::PointStamped *msg)
 {
-    msg.header.stamp = ros::Time::now();
-    msg.point.x = point[0];
-    msg.point.y = point[1];
-    msg.point.z = point[2];
+    msg->header.stamp = ros::Time::now();
+    msg->point.x = point[0];
+    msg->point.y = point[1];
+    msg->point.z = point[2];
 }
 
-void ObstacleDetection::constructMapMsg(const GridMap &map, nav_msgs::OccupancyGrid &msg)
+void ObstacleDetection::constructMapMsg(GridMapd &map, nav_msgs::OccupancyGrid *msg)
 {
-    GridMap map_msg = map;
-    msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = "odom";
-    msg.info.width = 6;
-    msg.info.height = 3;
-    map_msg  = map_msg / map_msg.maxCoeff() * 100;
-    int *data = new int [map.size()]; 
-    Eigen::Map<GridMap>(data, map.rows(), map.cols()) = map;
-    msg.data = data;
+    msg->header.stamp = ros::Time::now();
+    msg->header.frame_id = "odom";
+    msg->info.width = 6;
+    msg->info.height = 3;
+    msg->info.resolution = 1;
+    msg->info.origin.position.x = 2;
+
+    msg->info.origin.orientation = tf::createQuaternionMsgFromYaw(M_PI);
+    map = map / (double)map.maxCoeff() * 100.0;
+    map = map.unaryExpr(std::ptr_fun<double,double>(std::round));
+    GridMap new_map = map.template cast<int>();
+    msg->data = std::vector<int8_t> (new_map.data(),new_map.data() + new_map.size());
 }
 } // namespace hd_depth
