@@ -73,7 +73,8 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
         {
             if (landing_condition_met_)
             {
-                drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, descending_speed_, velocity_control_effort_yaw_);
+                drone_interface_ptr_->sendControlSignal(0,0 , 0.5, velocity_control_effort_yaw_);
+                //drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, descending_speed_, velocity_control_effort_yaw_);
             }
             else if (relanding_condition_met_)
             {
@@ -202,9 +203,9 @@ bool DroneControl::monitoredTakeoff()
         ros::Duration(0.01).sleep();
         ros::spinOnce();
     }
-
-    if (flight_status_ != DJISDK::M100FlightStatus::M100_STATUS_IN_AIR ||
-        current_gps_.altitude - home_altitude < 1.0)
+    double  alt = current_gps_.altitude - home_altitude;
+     ROS_DEBUG_STREAM("alt :" << alt);
+    if (flight_status_ != DJISDK::M100FlightStatus::M100_STATUS_IN_AI || current_gps_.altitude - home_altitude < 1.0)
     {
         ROS_ERROR("Takeoff failed.");
         return false;
