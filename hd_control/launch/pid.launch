@@ -1,9 +1,9 @@
 <launch>
     <node ns="hd_landing" name="position_track_pid_velocity_x_controller" pkg="pid" type="controller">
       <param name="node_name" value="apriltag_tracking_x_controller" />
-      <param name="Kp" value="0.0015" />
-      <param name="Ki" value="0.0001" />
-      <param name="Kd" value="100" /> 
+      <param name="Kp" value="0.9" />
+      <param name="Ki" value="0.3" />
+      <param name="Kd" value="50" /> 
       <param name="P" value="1" />
       <param name="Q" value="0.00005" />
       <param name="R" value="1" />
@@ -23,9 +23,9 @@
 
     <node ns="hd_landing" name="position_track_pid_velocity_y_controller" pkg="pid" type="controller"  >
       <param name="node_name" value="apriltag_tracking_y_controller" />
-      <param name="Kp" value="0.0015" />
-      <param name="Ki" value="0.0001" />
-      <param name="Kd" value="100" /> 
+      <param name="Kp" value="0.9" />
+      <param name="Ki" value="0.3" />
+      <param name="Kd" value="50" /> 
       <param name="P" value="1" />
       <param name="Q" value="0.00005" />
       <param name="R" value="1" />

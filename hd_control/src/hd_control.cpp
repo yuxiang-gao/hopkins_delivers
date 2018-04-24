@@ -205,7 +205,7 @@ bool DroneControl::monitoredTakeoff()
     }
     double  alt = current_gps_.altitude - home_altitude;
      ROS_DEBUG_STREAM("alt :" << alt);
-    if (flight_status_ != DJISDK::M100FlightStatus::M100_STATUS_IN_AI || current_gps_.altitude - home_altitude < 1.0)
+    if (flight_status_ != DJISDK::M100FlightStatus::M100_STATUS_IN_AIR || current_gps_.altitude - home_altitude < 1.0)
     {
         ROS_ERROR("Takeoff failed.");
         return false;
