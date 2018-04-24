@@ -188,7 +188,7 @@ void ObstacleDetection::constructMapMsg(GridMapd &map, nav_msgs::OccupancyGrid *
     msg->info.origin.orientation = tf::createQuaternionMsgFromYaw(M_PI);
     map = map / (double)map.maxCoeff() * 100.0;
     map = map.unaryExpr(std::ptr_fun<double,double>(std::round));
-    GridMap new_map = map.template cast<int>();
+    GridMap new_map = map.template cast<int8_t>();
     msg->data = std::vector<int8_t> (new_map.data(),new_map.data() + new_map.size());
 }
 } // namespace hd_depth

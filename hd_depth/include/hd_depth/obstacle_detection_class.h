@@ -25,7 +25,7 @@
 
 namespace hd_depth
 {
-typedef Eigen::Matrix<int, 3, 6, Eigen::RowMajor> GridMap;
+typedef Eigen::Matrix<int8_t, 3, 6, Eigen::RowMajor> GridMap;
 typedef Eigen::Matrix<double, 3, 6, Eigen::RowMajor> GridMapd;
 typedef Eigen::Map<const GridMap> MapTypeConst;
 class ObstacleDetection
