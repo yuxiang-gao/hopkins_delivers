@@ -150,10 +150,9 @@ void DroneControl::obstacleCallback(const nav_msgs::OccupancyGrid::ConstPtr &map
     int center = map->info.origin.position.x;
     float obstacle_dist = 0;
     int obstacle_dir = 0;
-    //std::vector<int> data;
-    //std::copy(map->data, map->data + 18, data.begin());
-    hd_depth::MapTypeConst m(map->data, 3, 6);
-    //hd_depth::GridMap m = Eigen::Map<const Eigen::Matrix<int, 3, 6, Eigen::RowMajor>>(data);
+    int8_t data[18];
+    for(int i = 0; i < 18; ++i) data[i] = map->data[i];
+    hd_depth::MapTypeConst m(data);
 
     if (m.block<3, 3>(0, 0).sum() < m.block<3, 3>(0, 3).sum())
         obstacle_dir = 1;
