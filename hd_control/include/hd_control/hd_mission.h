@@ -28,8 +28,6 @@ namespace hd_control
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
 
-typedef boost::shared_ptr<Mission> MissionPtr;
-
 typedef strcut FlightTarget
 {
     float x = 0;
@@ -38,6 +36,13 @@ typedef strcut FlightTarget
     float yaw = 0;
 } FlightTarget;
 
+typedef struct ObstacleState
+{
+    bool  detected = false;
+    float distace = 0.0;
+    int orientation = 0; //0 for left 1 for right
+} ObstacleState;
+
 class Mission
 {
 public:
@@ -45,79 +50,89 @@ public:
     // 0---> 1 ---> 2 ---> ... ---> N ---> 0
     // where state 0 means the mission is note started
     // and each state i is for the process of moving to a target point.
-    int state;
-    std::vector<FlightTarget> flight_plan_;
-    std::vector<sensor_msgs::NavSatFix> gps_flight_plan_;
-
-    int inbound_counter;
-    int outbound_counter;
-    int break_counter;
-
-    float target_offset_x;
-    float target_offset_y;
-    float target_offset_z;
-    float target_yaw;
-
-    sensor_msgs::NavSatFix start_gps_location_;
-    geometry_msgs::Point start_local_position_;
-
-    DroneInterfacePtr drone_interface_ptr_;
-
-    bool finished;
+    int state_;
+    bool finished_;
+    float working_height_; // for test only
 
     Mission(DroneInterfacePtr drone_interface_ptr, sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos) : 
-        state(0), 
-        inbound_counter(0), 
-        outbound_counter(0), 
-        break_counter(0),
-        target_offset_x(0.0), 
-        target_offset_y(0.0), 
-        target_offset_z(0.0),
-        finished(false), 
+        state_(0), 
+        finished_(false),
+        working_height_(5.0)
+        inbound_counter_(0), 
+        outbound_counter_(0), 
+        break_counter_(0),
+        target_offset_x_(0.0), 
+        target_offset_y_(0.0), 
+        target_offset_z_(0.0),
         drone_interface_ptr_(drone_interface_ptr)
         start_gps_location_(current_gps),
         start_local_position_(current_local_pos)
     {
+        FlightPlan fp;
+        fp.z = working_height_;
+        flight_plan_.clear();
+        flight_plan_.append(fp);
     }
 
-    void step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti);
+    void step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti, ObstacleState &ob);
 
     void setPlan(std::vector<FlightTarget> flight_targets)
     {
-        state = 0;
+        state_ = 0;
         flight_plan_ = flight_targets;
     }
 
-    void setPlan(std::vector<sensor_msgs::NavSatFix> flight_targets)
+    void setGPSPlan(std::vector<sensor_msgs::NavSatFix> flight_targets)
     {
-        state = 0;
+        state_ = 0;
         gps_flight_plan_ = flight_targets;
+        
+    }
+
+    void appendPlan(FlightTarget flight_target)
+    {
+        gps_flight_plan_.append(flight_target);
+    }
+
+    void uploadPlan()
+    {
+        FlightPlan fp;
+        fp.z = working_height_;
+        flight_plan_.clear();
+        flight_plan_.append(fp);
+    }
+
+    void clearPlan()
+    {
+        state_ = 0;
+        gps_flight_plan_.clear();
+        
     }
 
     void setTarget(FlightTarget ft)
     {
-        target_offset_x = ft.x;
-        target_offset_y = ft.y;
-        target_offset_z = ft.z;
-        target_yaw      = ft.yaw;
+        target_offset_x_ = ft.x;
+        target_offset_y_ = ft.y;
+        target_offset_z_ = ft.z;
+        target_yaw_      = ft.yaw;
     }
 
     void setTarget(float x, float y, float z, float yaw)
     {
-        target_offset_x = x;
-        target_offset_y = y;
-        target_offset_z = z;
-        target_yaw      = yaw;
+        target_offset_x_ = x;
+        target_offset_y_ = y;
+        target_offset_z_ = z;
+        target_yaw_      = yaw;
     }
 
     void setTarget(sensor_msgs::NavSatFix &target)
     {
         eometry_msgs::Vector3  target_offset;
         localOffsetFromGpsOffset(target_offset, target, start_gps_location_);
-        target_offset_x = target_offset.x;
-        target_offset_y = target_offset.y;
-        target_offset_z = target_offset.z;
-        target_yaw      = yaw;
+        target_offset_x_ = target_offset.x;
+        target_offset_y_ = target_offset.y;
+        target_offset_z_ = target_offset.z;
+        target_yaw_      = yaw;
     }
 
     void reset(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos)
@@ -129,13 +144,48 @@ public:
         start_gps_location_ = current_gps;
         start_local_position_ = current_local_pos;
     }
+
+    
+    void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
+                                    sensor_msgs::NavSatFix& target,
+                                    sensor_msgs::NavSatFix& origin)
+    {
+        double deltaLon = target.longitude - origin.longitude;
+        double deltaLat = target.latitude - origin.latitude;
+
+        deltaNed.y = deltaLat * deg2rad * C_EARTH;
+        deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
+        deltaNed.z = target.altitude - origin.altitude;
+    }
+
+    geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
+    {
+        geometry_msgs::Vector3 ans;
+
+        tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
+        R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
+        return ans;
+    }
+
+private:
+    std::vector<FlightTarget> flight_plan_;
+    std::vector<sensor_msgs::NavSatFix> gps_flight_plan_;
+
+    int inbound_counter_;
+    int outbound_counter_;
+    int break_counter_;
+
+    float target_offset_x_;
+    float target_offset_y_;
+    float target_offset_z_;
+    float target_yaw_;
+
+    sensor_msgs::NavSatFix start_gps_location_;
+    geometry_msgs::Point start_local_position_;
+
+    DroneInterfacePtr drone_interface_ptr_;
 };
 
-void localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
-                              sensor_msgs::NavSatFix& target,
-                              sensor_msgs::NavSatFix& origin);
-
-geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat);
-
+typedef boost::shared_ptr<Mission> MissionPtr;
 } // namespace hd_control
-#endif // DEMO_FLIGHT_CONTROL_H
+#endif // HD_MISSION_H

@@ -65,9 +65,10 @@ class DroneControl
     bool relanding_condition_met_ = false;
 
     int obstacle_threshold_ = 100;
-    double obstacle_dist_ = 0;
+    ObstacleState obstacle_;
+    // double obstacle_dist_ = 0;
     double obstacle_avoid_speed_ = 5.0;
-    int obstacle_dir_ = 0; // 0 for left 1 for right
+    // int obstacle_dir_ = 0; // 0 for left 1 for right
     // double obstacle_running_average_ = 0;
     // double obstacle_alpha_ = 0;
 

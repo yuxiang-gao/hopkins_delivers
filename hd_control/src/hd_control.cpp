@@ -58,12 +58,11 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     }
     // set goal
     ros::spinOnce();
-    mission_ptr_.reset(new Mission(drone_interface_ptr_, &current_gps_, &current_local_pos_));
+    mission_ptr_.reset(new Mission(drone_interface_ptr_, current_gps_, current_local_pos_));
     FlightTarget flight_target;
     flight_target.x = 5;
-    std::vector<FlightTarget> flight_plan;
-    flight_plan.push_back(flight_target);
-    mission_ptr_->setPlan(flight_plan);
+    mission_ptr_->appendPlan(flight_target);
+    mission_ptr_->uploadPlan();
 
     ros::Rate loop_rate(50);
     
@@ -149,11 +148,14 @@ void DroneControl::obstacleCallback(const nav_msgs::OccupancyGrid::ConstPtr &map
     int width = map->info.width;
     int height = map->info.height;
     int center = map->info.origin.position.x;
+    float obstacle_dist = 0;
+    int obstacle_dir = 0;
     hd_depth::MapTypeConst m(map->data);
+
     if (m.block<3, 3>(0, 0).sum() < m.block<3, 3>(0, 3).sum())
-        obstacle_dir_ = 1;
+        obstacle_dir = 1;
     else
-        obstacle_dir_ = 0;
+        obstacle_dir = 0;
     // **00**
     // *0000*
     // 000000
@@ -164,25 +166,29 @@ void DroneControl::obstacleCallback(const nav_msgs::OccupancyGrid::ConstPtr &map
             if (m.block<1, 2>(2, 2).maxCoeff() < obstacle_threshold_)
             {
                 obstacle_detected_ = false;
-                obstacle_dist_ = 0;
+                obstacle_dist = 0;
             }
             else
             {
                 obstacle_detected_ = true;
-                obstacle_dist_ = 5;
+                obstacle_dist = 5;
             }
         }
         else
         {
             obstacle_detected_ = true;
-            obstacle_dist_ = 3;
+            obstacle_dist = 3;
         }
     }
     else
     {
         obstacle_detected_ = true;
-        obstacle_dist_ = 1;
+        obstacle_dist = 1;
     }
+
+    obstacle_.detected = obstacle_detected_;
+    obstacle_.distance = obstacle_dist;
+    obstacle_.orientation = obstacle_dir;
 }
 
 void DroneControl::gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)

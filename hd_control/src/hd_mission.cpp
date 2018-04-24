@@ -6,30 +6,28 @@ namespace hd_control
 /*! Very simple calculation of local NED offset between two pairs of GPS
 /coordinates. Accurate when distances are small.
 !*/
-void
-localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
-                         sensor_msgs::NavSatFix& target,
-                         sensor_msgs::NavSatFix& origin)
+
+void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti, ObstacleState &ob)
 {
-    double deltaLon = target.longitude - origin.longitude;
-    double deltaLat = target.latitude - origin.latitude;
+    // add input ob_dist, ob_ori
+    float ob_dist = ob.distance;
+    int ob_ori = ob.orientation;
+    // if ( ob_dist == 0 )
+    // {
 
-    deltaNed.y = deltaLat * deg2rad * C_EARTH;
-    deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
-    deltaNed.z = target.altitude - origin.altitude;
-}
-
-geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
-{
-    geometry_msgs::Vector3 ans;
-
-    tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
-    R_FLU2ENU.getRPY(ans.x, ans.y, ans.z);
-    return ans;
-}
-
-void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti)
-{
+    // }
+    // else if ( ob_dist >= 5)
+    // {
+    //     // add y speed
+    // }
+    // else if ( ob_dist > 1 && ob_dist < 5)
+    // {
+    //     // add greater y speed
+    // }
+    // else if (ob_dist < 1)
+    // {
+    //     // stop and move sideways
+    // }
     geometry_msgs::Vector3 localOffset;
 
     float speedFactor         = 2;
@@ -39,9 +37,9 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
 
     localOffsetFromGpsOffset(localOffset, current_gps, start_gps_location_);
 
-    double xOffsetRemaining = target_offset_x - localOffset.x;
-    double yOffsetRemaining = target_offset_y - localOffset.y;
-    double zOffsetRemaining = target_offset_z - localOffset.z;
+    double xOffsetRemaining = target_offset_x_ - localOffset.x;
+    double yOffsetRemaining = target_offset_y_ - localOffset.y;
+    double zOffsetRemaining = target_offset_z_ - localOffset.z;
 
 
 
@@ -69,23 +67,23 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
     else
         yCmd = yOffsetRemaining;
 
-    zCmd = start_gps_location_.altitude + target_offset_z;
+    zCmd = start_gps_location_.altitude + target_offset_z_;
 
     /*!
     * @brief: if we already started breaking, keep break for 50 sample (1sec)
     *         and call it done, else we send normal command
     */
 
-    if (break_counter > 50)
+    if (break_counter_ > 50)
     {
         ROS_INFO("##### Route %d finished....", state);
         finished = true;
         return;
     }
-    else if(break_counter > 0)
+    else if(break_counter_ > 0)
     {
         drone_interface_ptr_->sendControlSignal(0, 0, 0, 0);
-        break_counter++;
+        break_counter_++;
         return;
     }
     else //break_counter = 0, not in break stage
@@ -99,29 +97,29 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
         std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad)
     {
         //! 1. We are within bounds; start incrementing our in-bound counter
-        inbound_counter ++;
+        inbound_counter_ ++;
     }
     else
     {
-        if (inbound_counter != 0)
+        if (inbound_counter_ != 0)
         {
             //! 2. Start incrementing an out-of-bounds counter
-            outbound_counter ++;
+            outbound_counter_ ++;
         }
     }
 
     //! 3. Reset withinBoundsCounter if necessary
-    if (outbound_counter > 10)
+    if (outbound_counter_ > 10)
     {
         ROS_INFO("##### Route %d: out of bounds, reset....", state);
-        inbound_counter  = 0;
-        outbound_counter = 0;
+        inbound_counter_  = 0;
+        outbound_counter_ = 0;
     }
 
-    if (inbound_counter > 50)
+    if (inbound_counter_ > 50)
     {
         ROS_INFO("##### Route %d start break....", state);
-        break_counter = 1;
+        break_counter_ = 1;
     }
 }
 }
