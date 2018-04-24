@@ -12,18 +12,12 @@ DroneInterface::DroneInterface(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : 
     query_version_service_ = nh_.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
     set_local_pos_reference_ = nh_.serviceClient<dji_sdk::SetLocalPosRef>("dji_sdk/set_local_pos_ref");
 
-    grab_package_service_ = nh_.serviceClient<hd_msgs::EMService>("/hd/package/em_control");
+    grab_package_service_ = nh_.serviceClient<hd_msgs::EMService>("hd/package/em_control");
 
-    try
+    if (obtainControl())
     {
-        if (!obtainControl())
-            throw 0;
-        setLocalPosition();
         ROS_INFO("Obtain control succeed. Setting local pos!");
-    }
-    catch (int e)
-    {
-        ROS_ERROR("Obtain control FAILED!");
+        setLocalPosition();
     }
 }
 
@@ -31,9 +25,11 @@ DroneInterface::~DroneInterface()
 {
     if (releaseControl())
         ROS_INFO("Release control succeed.");
+    else
+        ROS_ERROR("Release control FAILED!");
 }
 
-void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_rate, bool use_rate)
+void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_rate, bool use_rate = true)
 {
     sensor_msgs::Joy control_pos_yaw_rate;
     control_pos_yaw_rate.axes.push_back(x);
@@ -48,7 +44,7 @@ void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_
     ctrl_pub_.publish(control_pos_yaw_rate);
 }
 
-void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate, bool use_rate)
+void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate, bool use_rate = true)
 {
     sensor_msgs::Joy control_pos_yaw_rate;
     control_pos_yaw_rate.axes.push_back(x);
@@ -94,13 +90,11 @@ bool DroneInterface::obtainControl()
     dji_sdk::SDKControlAuthority authority;
     authority.request.control_enable = 1;
     sdk_ctrl_authority_service_.call(authority);
-
     if (!authority.response.result)
     {
         ROS_ERROR("obtain control failed!");
         return false;
     }
-
     return true;
 }
 
@@ -109,13 +103,11 @@ bool DroneInterface::releaseControl()
     dji_sdk::SDKControlAuthority authority;
     authority.request.control_enable = 0;
     sdk_ctrl_authority_service_.call(authority);
-
     if (!authority.response.result)
     {
         ROS_ERROR("Release control failed!");
         return false;
     }
-
     return true;
 }
 
@@ -128,17 +120,13 @@ bool DroneInterface::setLocalPosition()
 bool DroneInterface::takeoffLand(int task)
 {
     dji_sdk::DroneTaskControl droneTaskControl;
-
     droneTaskControl.request.task = task;
-
     drone_task_service_.call(droneTaskControl);
-
     if (!droneTaskControl.response.result)
     {
         ROS_ERROR("takeoff_land fail");
         return false;
     }
-
     return true;
 }
 

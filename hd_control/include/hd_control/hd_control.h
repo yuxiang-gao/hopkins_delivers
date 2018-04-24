@@ -11,7 +11,9 @@
 #include <geometry_msgs/Point.h>
 #include <std_msgs/UInt8.h>
 
-#include "hd_msgs/ObstacleDetection.h"
+// #include "hd_msgs/ObstacleDetection.h"
+#include "hd_depth/obstacle_detection_class.h"
+#include <nav_msgs/OccupancyGrid.h>
 #include "hd_control/hd_drone_interface.h"
 #include "hd_control/hd_state.h"
 #include "hd_control/hd_mission.h"
@@ -63,14 +65,18 @@ class DroneControl
     bool relanding_condition_met_ = false;
 
     int obstacle_threshold_ = 100;
-    double obstacle_running_average_ = 0;
-    double obstacle_alpha_ = 0;
+    double obstacle_dist_ = 0;
+    double obstacle_avoid_speed_ = 5.0;
+    int obstacle_dir_ = 0; // 0 for left 1 for right
+    // double obstacle_running_average_ = 0;
+    // double obstacle_alpha_ = 0;
 
     HDStates drone_state_;
 
     bool monitoredTakeoff();
+    bool monitoredLanding();
 
-    void obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob);
+    void obstacleCallback(const nav_msgs::OccupancyGrid::ConstPtr &map);
 
     void repulsiveForceCallback(const geometry_msgs::PointStamped::ConstPtr &rep);
 

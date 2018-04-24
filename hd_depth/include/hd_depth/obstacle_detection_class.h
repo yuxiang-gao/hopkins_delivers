@@ -27,6 +27,7 @@ namespace hd_depth
 {
 typedef Eigen::Matrix<int, 3, 6, Eigen::RowMajor> GridMap;
 typedef Eigen::Matrix<double, 3, 6, Eigen::RowMajor> GridMapd;
+typedef Eigen::Map<const GridMap> MapTypeConst;
 class ObstacleDetection
 {
 public: 
@@ -49,28 +50,14 @@ private:
     sensor_msgs::CameraInfo::ConstPtr camera_info_;
 
     // intrinsic
-    // const double cx_ = 325.5;
-    // const double cy_ = 253.5;
-    // const double fx_ = 518.0;
-    // const double fy_ = 519.0;
     double fx_, fy_, cx_, cy_;
 
     // obstacle potential thresh
-    
     const double potential_thresh_ = 2.0;
     const double inv_potential_thresh_ = 1.0 / potential_thresh_;
     double obstacle_gain_ = 0.5;
     //const float DEPTH_SCALE = 1000.0;
 
-    // inline std::vector<int> buildGrid1d(const int & span, const int & num_grids)
-    // {
-    //     std::vector<int> grid;
-    //     for (int i=0; i<num_grids+1; i++)
-    //     {
-    //         grid.push_back(span * i / num_grids);
-    //     }
-    //     return grid;
-    // }
     void constructPointMsg(const Eigen::Vector3d &point, geometry_msgs::PointStamped *msg);
     void constructMapMsg(GridMapd &map, nav_msgs::OccupancyGrid *msg);
 }; // class ObstacleDetection

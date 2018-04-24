@@ -82,7 +82,8 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
         {
             if (landing_condition_met_)
             {
-                drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, descending_speed_, velocity_control_effort_yaw_);
+                // drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, descending_speed_, velocity_control_effort_yaw_);
+                monitoredLanding();
             }
             else if (relanding_condition_met_)
             {
@@ -102,15 +103,22 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     while (ros::ok())
     {
         ros::spinOnce();
+        Eigen::Vector3d v(0, 0, 0);
         if (obstacle_detected_)
         {
-            continue;
+            double power = obstacle_avoid_speed_ / (obstacle_dist_ + 1);
+            if (obstacle_dir_ == 0)
+                v(1) += power;
+            else
+                v(1) -= power;
+
         }
         else if (position_track_enabled_)
         {
             if (landing_condition_met_)
             {
-                drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, descending_speed_, velocity_control_effort_yaw_);
+                monitoredLanding();
+                // drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, descending_speed_, velocity_control_effort_yaw_);
             }
             else if (relanding_condition_met_)
             {
@@ -136,58 +144,44 @@ void DroneControl::repulsiveForceCallback(const geometry_msgs::PointStamped::Con
     ROS_INFO("haha");
 }
 
-void DroneControl::obstacleCallback(const hd_msgs::ObstacleDetection::ConstPtr &ob)
+void DroneControl::obstacleCallback(const nav_msgs::OccupancyGrid::ConstPtr &map)
 {
-    double ob_mid_bins = 0;
-    int num_bins = ob->num_bins;
-    if (num_bins % 2 == 0)
+    int width = map->info.width;
+    int height = map->info.height;
+    int center = map->info.origin.position.x;
+    hd_depth::MapTypeConst m(map->data);
+    if (m.block<3, 3>(0, 0).sum() < m.block<3, 3>(0, 3).sum())
+        obstacle_dir_ = 1;
+    else
+        obstacle_dir_ = 0;
+    // **00**
+    // *0000*
+    // 000000
+    if ( m.row(0).maxCoeff() < obstacle_threshold_ )
     {
-        ob_mid_bins = ob->data[num_bins / 2] + ob->data[num_bins / 2 + 1];
-        ob_mid_bins /= 2;
+        if (m.block<1, 4>(1, 1).maxCoeff() < obstacle_threshold_)
+        {
+            if (m.block<1, 2>(2, 2).maxCoeff() < obstacle_threshold_)
+            {
+                obstacle_detected_ = false;
+                obstacle_dist_ = 0;
+            }
+            else
+            {
+                obstacle_detected_ = true;
+                obstacle_dist_ = 5;
+            }
+        }
+        else
+        {
+            obstacle_detected_ = true;
+            obstacle_dist_ = 3;
+        }
     }
     else
-    {
-        ob_mid_bins = ob->data[num_bins / 2 + 1];
-    }
-
-    obstacle_running_average_ = (1 - obstacle_alpha_) * obstacle_running_average_ + obstacle_alpha_ * ob_mid_bins;
-
-    if (obstacle_running_average_ > obstacle_threshold_)
     {
         obstacle_detected_ = true;
-        // std::vector<int> ob_cnt(num_bins-2);
-        // for (int i=0; i<num_bins-2; i++)
-        // {
-        //     ob_cnt[i] = ob->data[i] + ob->data[i+1] + ob->data[i+2];
-        // }
-        // int min_dir = std::distance(ob_cnt.begin(), std::min_element(ob_cnt.begin(), ob_cnt.end()));
-        // if (min_dir <= (double)num_bins/2)
-        // {
-
-        // }
-        int ob_left = 0;
-        int ob_right = 0;
-        for (int i = 0; i < num_bins; i++)
-        {
-            if ((i + 1) <= num_bins / 2)
-                ob_left += ob->data[i];
-            else
-                ob_right += ob->data[i];
-        }
-        if (ob_left < ob_right)
-        {
-            ROS_DEBUG("Obstcle Detected. Moving left.");
-            drone_interface_ptr_->sendControlSignal(0.0, -0.2, 0.0, 0.0);
-        }
-        else 
-        {
-            ROS_DEBUG("Obstcle Detected. Moving right.");
-            drone_interface_ptr_->sendControlSignal(0.0, 0.2, 0.0, 0.0);
-        }
-    }
-    else
-    {
-        obstacle_detected_ = false;
+        obstacle_dist_ = 1;
     }
 }
 
@@ -254,6 +248,42 @@ bool DroneControl::monitoredTakeoff()
     {
         start_time = ros::Time::now();
         ROS_INFO("Successful takeoff!");
+        ros::spinOnce();
+    }
+
+    return true;
+}
+
+bool DroneControl::monitoredLanding()
+{
+    ros::Time start_time = ros::Time::now();
+
+    float home_altitude = current_gps_.altitude;
+    if (!drone_interface_ptr_->takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LANDING))
+    {
+        return false;
+    }
+
+    ros::Duration(0.01).sleep();
+    ros::spinOnce();
+
+    // Step 1: If M100 is not in the air after 10 seconds, fail.
+    while (ros::Time::now() - start_time < ros::Duration(10) || flight_status_ == DJISDK::M100FlightStatus::M100_STATUS_LANDING)
+    {
+        ros::Duration(0.01).sleep();
+        ros::spinOnce();
+    }
+
+    if (flight_status_ != DJISDK::M100FlightStatus::M100_STATUS_ON_GROUND ||
+        current_gps_.altitude - home_altitude > 1.0)
+    {
+        ROS_ERROR("Landing failed.");
+        return false;
+    }
+    else
+    {
+        start_time = ros::Time::now();
+        ROS_INFO("Successful Landed!");
         ros::spinOnce();
     }
 
