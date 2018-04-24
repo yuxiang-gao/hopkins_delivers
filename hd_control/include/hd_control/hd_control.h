@@ -81,6 +81,8 @@ class DroneControl
 
     void repulsiveForceCallback(const geometry_msgs::PointStamped::ConstPtr &rep);
 
+    void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg);
+
     void localPositionCallback(const geometry_msgs::PointStamped::ConstPtr& msg)
     {
         current_local_pos_ = msg->point;
@@ -104,18 +106,18 @@ class DroneControl
     void positionTrackEnableCallback(const std_msgs::Bool &position_track_enable_msg)
     {
         position_track_enabled_ = position_track_enable_msg.data;
-        if (position_track_enabled_ && drone_state_.first==StateConst::DroneState::STATE_SEARCHING)
+        if (position_track_enabled_ && drone_state_.drone_state==DroneState::STATE_SEARCHING)
         {
-            drone_state_.first = StateConst::DroneState::STATE_ALIGNING;
+            drone_state_.drone_state = DroneState::STATE_ALIGNING;
         }
     }
 
     void landingConditionMetCallback(const std_msgs::Bool &landing_condition_met_msg)
     {
         landing_condition_met_ = landing_condition_met_msg.data;
-        if (landing_condition_met_ && drone_state_.first==StateConst::DroneState::STATE_ALIGNING)
+        if (landing_condition_met_ && drone_state_.drone_state==DroneState::STATE_ALIGNING)
         {
-            drone_state_.first = StateConst::DroneState::STATE_DESCENDING;
+            drone_state_.drone_state = DroneState::STATE_DESCENDING;
         }
     }
 

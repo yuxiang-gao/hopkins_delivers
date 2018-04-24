@@ -29,7 +29,7 @@ DroneInterface::~DroneInterface()
         ROS_ERROR("Release control FAILED!");
 }
 
-void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_rate, bool use_rate = true)
+void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_rate, bool use_rate)
 {
     sensor_msgs::Joy control_pos_yaw_rate;
     control_pos_yaw_rate.axes.push_back(x);
@@ -44,7 +44,7 @@ void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_
     ctrl_pub_.publish(control_pos_yaw_rate);
 }
 
-void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate, bool use_rate = true)
+void DroneInterface::sendENUControlSignal(double x, double y, double z, double yaw_rate, bool use_rate)
 {
     sensor_msgs::Joy control_pos_yaw_rate;
     control_pos_yaw_rate.axes.push_back(x);

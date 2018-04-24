@@ -1,0 +1,33 @@
+/home/nvidia/catkin_ws/src/hd_ros/hd_control/src/hd_control.cpp: In member function ‘void hd_control::DroneControl::obstacleCallback(const ConstPtr&)’:
+/home/nvidia/catkin_ws/src/hd_ros/hd_control/src/hd_control.cpp:155:45: error: no matching function for call to ‘Eigen::Map<const Eigen::Matrix<int, 3, 6, 1> >::Map(const _data_type&, int, int)’
+     hd_depth::MapTypeConst m(map->data, 3, 6);
+                                             ^
+In file included from /usr/include/eigen3/Eigen/Core:378:0,
+                 from /usr/include/eigen3/Eigen/Geometry:11,
+                 from /home/nvidia/catkin_ws/src/hd_ros/hd_depth/include/hd_depth/obstacle_detection_class.h:22,
+                 from /home/nvidia/catkin_ws/src/hd_ros/hd_control/include/hd_control/hd_control.h:15,
+                 from /home/nvidia/catkin_ws/src/hd_ros/hd_control/src/hd_control.cpp:1:
+/usr/include/eigen3/Eigen/src/Core/Map.h:150:12: note: candidate: Eigen::Map<MatrixType, MapOptions, StrideType>::Map(Eigen::Map<MatrixType, MapOptions, StrideType>::PointerArgType, Eigen::Index, Eigen::Index, const StrideType&) [with PlainObjectType = const Eigen::Matrix<int, 3, 6, 1>; int MapOptions = 0; StrideType = Eigen::Stride<0, 0>; Eigen::Map<MatrixType, MapOptions, StrideType>::PointerArgType = const int*; Eigen::Index = long int]
+     inline Map(PointerArgType dataPtr, Index rows, Index cols, const StrideType& stride = StrideType())
+            ^~~
+/usr/include/eigen3/Eigen/src/Core/Map.h:150:12: note:   no known conversion for argument 1 from ‘const _data_type {aka const std::vector<signed char, std::allocator<signed char> >}’ to ‘Eigen::Map<const Eigen::Matrix<int, 3, 6, 1> >::PointerArgType {aka const int*}’
+/usr/include/eigen3/Eigen/src/Core/Map.h:136:12: note: candidate: Eigen::Map<MatrixType, MapOptions, StrideType>::Map(Eigen::Map<MatrixType, MapOptions, StrideType>::PointerArgType, Eigen::Index, const StrideType&) [with PlainObjectType = const Eigen::Matrix<int, 3, 6, 1>; int MapOptions = 0; StrideType = Eigen::Stride<0, 0>; Eigen::Map<MatrixType, MapOptions, StrideType>::PointerArgType = const int*; Eigen::Index = long int]
+     inline Map(PointerArgType dataPtr, Index size, const StrideType& stride = StrideType())
+            ^~~
+/usr/include/eigen3/Eigen/src/Core/Map.h:136:12: note:   no known conversion for argument 1 from ‘const _data_type {aka const std::vector<signed char, std::allocator<signed char> >}’ to ‘Eigen::Map<const Eigen::Matrix<int, 3, 6, 1> >::PointerArgType {aka const int*}’
+/usr/include/eigen3/Eigen/src/Core/Map.h:123:21: note: candidate: Eigen::Map<MatrixType, MapOptions, StrideType>::Map(Eigen::Map<MatrixType, MapOptions, StrideType>::PointerArgType, const StrideType&) [with PlainObjectType = const Eigen::Matrix<int, 3, 6, 1>; int MapOptions = 0; StrideType = Eigen::Stride<0, 0>; Eigen::Map<MatrixType, MapOptions, StrideType>::PointerArgType = const int*]
+     explicit inline Map(PointerArgType dataPtr, const StrideType& stride = StrideType())
+                     ^~~
+/usr/include/eigen3/Eigen/src/Core/Map.h:123:21: note:   candidate expects 2 arguments, 3 provided
+/usr/include/eigen3/Eigen/src/Core/Map.h:89:79: note: candidate: Eigen::Map<const Eigen::Matrix<int, 3, 6, 1> >::Map(const Eigen::Map<const Eigen::Matrix<int, 3, 6, 1> >&)
+ template<typename PlainObjectType, int MapOptions, typename StrideType> class Map
+                                                                               ^~~
+/usr/include/eigen3/Eigen/src/Core/Map.h:89:79: note:   candidate expects 1 argument, 3 provided
+hd_ros/hd_control/CMakeFiles/drone_control_node.dir/build.make:62: recipe for target 'hd_ros/hd_control/CMakeFiles/drone_control_node.dir/src/hd_control.cpp.o' failed
+make[2]: *** [hd_ros/hd_control/CMakeFiles/drone_control_node.dir/src/hd_control.cpp.o] Error 1
+CMakeFiles/Makefile2:6789: recipe for target 'hd_ros/hd_control/CMakeFiles/drone_control_node.dir/all' failed
+make[1]: *** [hd_ros/hd_control/CMakeFiles/drone_control_node.dir/all] Error 2
+Makefile:138: recipe for target 'all' failed
+make: *** [all] Error 2
+Invoking "make -j4 -l4" failed
+

@@ -3,16 +3,15 @@
 #define MISSION_TEST 1
 namespace hd_control
 {
-DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(*nh), nh_priv_(*nh_priv), drone_state_(DroneStates::STATE_ON_GROUND, false)
+DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(*nh), nh_priv_(*nh_priv), drone_state_(DroneState::STATE_ON_GROUND, false)
 {
     // initiate drone interface
     drone_interface_ptr_.reset(new DroneInterface(nh, nh_priv));
-    mission_ptr_.reset(new Mission(drone_interface_ptr_));
 
     attitude_sub_ = nh_.subscribe("dji_sdk/attitude", 10, &DroneControl::attitudeCallback, this);
     gps_sub_ = nh_.subscribe("dji_sdk/gps_position", 10, &DroneControl::gpsCallback, this);
     flight_status_sub_ = nh_.subscribe("dji_sdk/flight_status", 10, &DroneControl::flightStatusCallback, this);
-    local_position_sub_ = nh.subscribe("dji_sdk/local_position", 10, &DroneControl::localPositionCallback, this);
+    local_position_sub_ = nh_.subscribe("dji_sdk/local_position", 10, &DroneControl::localPositionCallback, this);
 
     velocity_control_x_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_x", 10, &DroneControl::velocityControlEffortXCallback, this);
     velocity_control_y_sub_ = nh_.subscribe("/hd/position_track/velocity_control_effort_y", 10, &DroneControl::velocityControlEffortYCallback, this);
@@ -58,6 +57,7 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     }
     // set goal
     ros::spinOnce();
+    ROS_INFO("Initiating mission!");
     mission_ptr_.reset(new Mission(drone_interface_ptr_, current_gps_, current_local_pos_));
     FlightTarget flight_target;
     flight_target.x = 5;
@@ -105,8 +105,8 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
         Eigen::Vector3d v(0, 0, 0);
         if (obstacle_detected_)
         {
-            double power = obstacle_avoid_speed_ / (obstacle_dist_ + 1);
-            if (obstacle_dir_ == 0)
+            double power = obstacle_avoid_speed_ / (obstacle_.distance + 1);
+            if (obstacle_.orientation == 0)
                 v(1) += power;
             else
                 v(1) -= power;
@@ -150,7 +150,10 @@ void DroneControl::obstacleCallback(const nav_msgs::OccupancyGrid::ConstPtr &map
     int center = map->info.origin.position.x;
     float obstacle_dist = 0;
     int obstacle_dir = 0;
-    hd_depth::MapTypeConst m(map->data);
+    //std::vector<int> data;
+    //std::copy(map->data, map->data + 18, data.begin());
+    hd_depth::MapTypeConst m(map->data, 3, 6);
+    //hd_depth::GridMap m = Eigen::Map<const Eigen::Matrix<int, 3, 6, Eigen::RowMajor>>(data);
 
     if (m.block<3, 3>(0, 0).sum() < m.block<3, 3>(0, 3).sum())
         obstacle_dir = 1;
@@ -265,7 +268,7 @@ bool DroneControl::monitoredLanding()
     ros::Time start_time = ros::Time::now();
 
     float home_altitude = current_gps_.altitude;
-    if (!drone_interface_ptr_->takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LANDING))
+    if (!drone_interface_ptr_->takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LAND))
     {
         return false;
     }

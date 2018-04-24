@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   hd_msgs
+  hd_depth
 )
 
 ## System dependencies are found with CMake's conventions
@@ -115,7 +116,7 @@ set(CMAKE_AUTOMOC ON)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES hd_control
+  LIBRARIES hd_control hd_depth
 #  CATKIN_DEPENDS apriltags_ros cmake_modules dji_sdk roscpp std_msgs
   DEPENDS system_lib Eigen
 )
@@ -135,6 +136,7 @@ include_directories(
 add_library(libdrone_interface src/hd_drone_interface.cpp)
 target_link_libraries(libdrone_interface
   ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
   ${DJIOSDK_LIBRARIES}
   )
 add_dependencies(libdrone_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -150,6 +152,7 @@ add_executable(drone_control_node src/hd_control.cpp)
 target_link_libraries(drone_control_node
   libdrone_interface
   ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
   ${DJIOSDK_LIBRARIES}
   )
 

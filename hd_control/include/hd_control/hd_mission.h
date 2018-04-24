@@ -28,7 +28,7 @@ namespace hd_control
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
 
-typedef strcut FlightTarget
+typedef struct FlightTarget
 {
     float x = 0;
     float y = 0;
@@ -39,7 +39,7 @@ typedef strcut FlightTarget
 typedef struct ObstacleState
 {
     bool  detected = false;
-    float distace = 0.0;
+    float distance = 0.0;
     int orientation = 0; //0 for left 1 for right
 } ObstacleState;
 
@@ -57,21 +57,21 @@ public:
     Mission(DroneInterfacePtr drone_interface_ptr, sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos) : 
         state_(0), 
         finished_(false),
-        working_height_(5.0)
+        working_height_(5.0),
         inbound_counter_(0), 
         outbound_counter_(0), 
         break_counter_(0),
         target_offset_x_(0.0), 
         target_offset_y_(0.0), 
         target_offset_z_(0.0),
-        drone_interface_ptr_(drone_interface_ptr)
+        drone_interface_ptr_(drone_interface_ptr),
         start_gps_location_(current_gps),
         start_local_position_(current_local_pos)
     {
-        FlightPlan fp;
+        FlightTarget fp;
         fp.z = working_height_;
         flight_plan_.clear();
-        flight_plan_.append(fp);
+        flight_plan_.push_back(fp);
     }
 
     void step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti, ObstacleState &ob);
@@ -91,15 +91,15 @@ public:
 
     void appendPlan(FlightTarget flight_target)
     {
-        gps_flight_plan_.append(flight_target);
+        flight_plan_.push_back(flight_target);
     }
 
     void uploadPlan()
     {
-        FlightPlan fp;
+        FlightTarget fp;
         fp.z = working_height_;
         flight_plan_.clear();
-        flight_plan_.append(fp);
+        flight_plan_.push_back(fp);
     }
 
     void clearPlan()
@@ -127,20 +127,20 @@ public:
 
     void setTarget(sensor_msgs::NavSatFix &target)
     {
-        eometry_msgs::Vector3  target_offset;
+        geometry_msgs::Vector3  target_offset;
         localOffsetFromGpsOffset(target_offset, target, start_gps_location_);
         target_offset_x_ = target_offset.x;
         target_offset_y_ = target_offset.y;
         target_offset_z_ = target_offset.z;
-        target_yaw_      = yaw;
+        //target_yaw_      = yaw;
     }
 
     void reset(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos)
     {
-        inbound_counter = 0;
-        outbound_counter = 0;
-        break_counter = 0;
-        finished = false;
+        inbound_counter_ = 0;
+        outbound_counter_ = 0;
+        break_counter_ = 0;
+        finished_ = false;
         start_gps_location_ = current_gps;
         start_local_position_ = current_local_pos;
     }
