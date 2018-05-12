@@ -343,7 +343,7 @@ int main(int argc, char **argv)
 
     node_priv.param<std::string>("tag_36h11_detection_topic", tag_36h11_detection_topic, "/apriltags/36h11/detections");
     node_priv.param<std::string>("tag_16h5_detection_topic", tag_16h5_detection_topic, "/apriltags/16h5/detections");
-    node_priv.param<double>("landing_threshold_36h11", landing_threshold_36h11, 1.0);
+    node_priv.param<double>("landing_threshold_36h11", landing_threshold_36h11, 0.1);
     node_priv.param<double>("landing_threshold_16h5", landing_threshold_16h5, 0.1);
     node_priv.param<double>("reland_height_min_threshold", reland_height_min_threshold, 1.3);
     node_priv.param<double>("reland_height_max_threshold", reland_height_max_threshold, 2.5);

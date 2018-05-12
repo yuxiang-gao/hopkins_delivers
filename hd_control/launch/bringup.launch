@@ -3,9 +3,10 @@
   <include file="$(find hd_control)/launch/usb_cam.launch"/>
   <include file="$(find apriltags)/launch/apriltags.launch"/>
   <include file="$(find hd_control)/launch/pid.launch"/>
+  <!--include file="$(find hd_depth)/launch/obsatcle_detection_nodelet.launch"/-->
   <!--node name="hd_state_publisher" pkg="hd_control" type="drone_state_publisher_node" output="screen" /-->
 
-  <node name="position_track_setpoint" pkg="hd_control" type="position_track_setpoint_node" output="screen" >
+  <node name="position_track_setpoint" pkg="hd_control" type="position_track_setpoint_node" output="screen" respawn="true">
     <param name="tag_36h11_detection_topic" value="/apriltags/detections" />
     <param name="tag_16h5_detection_topic" value="/apriltags/16h5/detections" />
     <param name="landing_threshold_36h11" value="1.0" />
