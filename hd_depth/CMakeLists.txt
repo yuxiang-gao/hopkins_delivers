@@ -136,9 +136,9 @@ add_library(obstacle_detection_nodelet src/obstacle_detection_nodelet.cpp src/ob
 target_link_libraries(obstacle_detection_nodelet ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
 add_dependencies(obstacle_detection_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-#add_executable(obstacle_detection_node src/obstacle_detection.cpp)
-#target_link_libraries(obstacle_detection_node obstacle_detection_class ${catkin_LIBRARIES})
-#add_dependencies(obstacle_detection_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(obstacle_detection_node src/obstacle_detection.cpp)
+target_link_libraries(obstacle_detection_node obstacle_detection_nodelet ${catkin_LIBRARIES})
+add_dependencies(obstacle_detection_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 ## Declare a C++ library
