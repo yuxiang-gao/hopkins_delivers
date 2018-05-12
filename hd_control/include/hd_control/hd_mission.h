@@ -61,6 +61,7 @@ public:
     int target_cnt_ = 0;
     bool target_finished_;
     float working_height_; // for test only
+    std::vector<sensor_msgs::NavSatFix> flight_plan_;
 
     Mission(DroneInterfacePtr drone_interface_ptr, sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos) : 
         state_(STATE_IDLE), 
@@ -76,10 +77,10 @@ public:
         start_gps_location_(current_gps),
         start_local_position_(current_local_pos)
     {
-        FlightTarget fp;
-        fp.z = working_height_;
-        flight_plan_.clear();
-        flight_plan_.push_back(fp);
+        // FlightTarget fp;
+        // fp.z = working_height_;
+        // flight_plan_.clear();
+        // flight_plan_.push_back(fp);
     }
 
     bool isPlanFinished()
@@ -93,6 +94,7 @@ public:
     void planFinished()
     {
         state_ = STATE_FINISHED;
+        flight_plan
     }
 
     bool isTargetFinished()
@@ -112,30 +114,29 @@ public:
     {
         state_ = STATE_ARRIVED;
     }
+
     void step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti, ObstacleState &ob);
 
-    void setPlan(std::vector<FlightTarget> flight_targets)
-    {
-        state_ = STATE_NEW_GOAL;
-        target_idx_ = 1;
-        target_cnt_ = flight_targets.size();
-        flight_plan_ = flight_targets;
-    }
+    // void setPlan(std::vector<FlightTarget> flight_targets)
+    // {
+    //     target_cnt_ = flight_targets.size();
+    //     flight_plan_ = flight_targets;
+    // }
 
-    void setGPSPlan(std::vector<sensor_msgs::NavSatFix> flight_targets)
-    {
-        state_ = STATE_NEW_GOAL;
-        target_idx_ = 0;
-        target_cnt_ = flight_targets.size();
-        gps_flight_plan_ = flight_targets;
+    // void setGPSPlan(std::vector<sensor_msgs::NavSatFix> flight_targets)
+    // {
+    //     state_ = STATE_NEW_GOAL;
+    //     target_idx_ = 0;
+    //     target_cnt_ = flight_targets.size();
+    //     gps_flight_plan_ = flight_targets;
         
-    }
+    // }
 
-    void appendPlan(FlightTarget flight_target)
-    {
-        flight_plan_.push_back(flight_target);
-        target_cnt_++;
-    }
+    // void appendPlan(FlightTarget flight_target)
+    // {
+    //     flight_plan_.push_back(flight_target);
+    //     target_cnt_++;
+    // }
 
     // void preparePlan()
     // {
@@ -153,21 +154,28 @@ public:
         
     }
 
-    void setTarget(FlightTarget ft)
+    // void setTarget(FlightTarget ft)
+    // {
+    //     target_offset_x_ = ft.x;
+    //     target_offset_y_ = ft.y;
+    //     target_offset_z_ = ft.z;
+    //     //target_yaw_      = ft.yaw;
+    // }
+
+    // void setTarget(float x, float y, float z, float yaw)
+    // {
+    //     target_offset_x_ = x;
+    //     target_offset_y_ = y;
+    //     target_offset_z_ = z;
+    //     //target_yaw_      = yaw;
+    // }
+
+    void appendPlan(sensor_msgs::NavSatFix &target)
     {
-        target_offset_x_ = ft.x;
-        target_offset_y_ = ft.y;
-        target_offset_z_ = ft.z;
-        //target_yaw_      = ft.yaw;
+        flight_plan_.append(target);
+        target_cnt_ = flight_plan_.size();
     }
 
-    void setTarget(float x, float y, float z, float yaw)
-    {
-        target_offset_x_ = x;
-        target_offset_y_ = y;
-        target_offset_z_ = z;
-        //target_yaw_      = yaw;
-    }
 
     void setTarget(sensor_msgs::NavSatFix &target)
     {
@@ -186,6 +194,7 @@ public:
         break_counter_ = 0;
         target_finished_ = false;
         state_ = STATE_NEW_GOAL;
+        setTarget(flight_plan_[target_idx_]);
         target_idx_++;
         start_gps_location_ = current_gps;
         start_local_position_ = current_local_pos;

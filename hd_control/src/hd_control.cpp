@@ -1,5 +1,5 @@
 #include "hd_control/hd_control.h"
-#define TEST 1
+#define TEST 0
 #define MISSION_TEST 1
 namespace hd_control
 {
@@ -99,6 +99,12 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
 #endif
 
 #if MISSION_TEST
+    sensor_msgs::NavSatFix plan;
+    plan.latitude = 
+    plan.longitude = 
+    plan.altitude = 
+    mission_ptr_->appendPlan();
+    
     while (ros::ok())
     {
         ros::spinOnce();
@@ -111,7 +117,7 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
                 ROS_INFO("##### Start route %d / %d ....", mission_ptr_->target_idx_, mission_ptr_->target_cnt_);
             }
             else
-                ROS_INFO_THROTTLE(1, "STATE_IDLE");
+                ROS_INFO_THROTTLE(1, "##### STATE_IDLE, wait for plan");
             break;
 
         case STATE_NEW_GOAL:
