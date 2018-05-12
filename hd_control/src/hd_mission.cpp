@@ -14,6 +14,12 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
     {
         float ob_dist = ob.distance;
         int ob_ori = ob.orientation;
+        ROS_INFO_THROTTLE(1, "####### obstacle dist: %f, ori: %d ...", ob_dist, ob_ori);
+        double power = obstacle_avoid_speed_ / (obstacle_.distance + 1);
+        if (obstacle_.orientation == 0)
+            yCmd += power;
+        else
+            yCmd -= power;
         // if ( ob_dist == 0 )
         // {
 
@@ -31,10 +37,6 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
         //     // stop and move sideways
         // }
     }
-
-
-    
-
     float speedFactor         = 2;
     float yawThresholdInDeg   = 10;
 

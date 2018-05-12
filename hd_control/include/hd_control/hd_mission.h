@@ -253,6 +253,7 @@ private:
     geometry_msgs::Point start_local_position_;
 
     DroneInterfacePtr drone_interface_ptr_;
+    double obstacle_avoid_speed_ = 5.0;
 };
 
 typedef boost::shared_ptr<Mission> MissionPtr;
