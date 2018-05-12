@@ -17,6 +17,10 @@
 #include "hd_control/hd_drone_interface.h"
 #include "hd_control/hd_state.h"
 #include "hd_control/hd_mission.h"
+#include <tf/transform_datatypes.h>
+
+#include <Eigen/Geometry>
+#include <Eigen/Dense>
 
 namespace hd_control
 {
@@ -54,6 +58,7 @@ class DroneControl
 
     sensor_msgs::NavSatFix current_gps_;
     geometry_msgs::Quaternion current_atti_;
+    //double current_heading_;
     geometry_msgs::Point current_local_pos_;
 
     const double descending_speed_ = -0.5;
@@ -129,6 +134,12 @@ class DroneControl
     void attitudeCallback(const geometry_msgs::QuaternionStamped::ConstPtr& msg)
     {
         current_atti_ = msg->quaternion;
+        //tf::Quaternion current_quat_tf;
+        // tf::quaternionMsgToTF(current_atti_ , current_quat_tf);
+        // Eigen::Quaterniond quat_eigen(current_quat_tf.w(), current_quat_tf.x(), current_quat_tf.y(), current_quat_tf.z());
+        // Eigen::Vector3 euler = quat_eigen.toRotationMatrix().eulerAngles(2, 1, 0);
+        // current_heading_ = euler[0];
+
     }
 
     void flightStatusCallback(const std_msgs::UInt8::ConstPtr& msg)

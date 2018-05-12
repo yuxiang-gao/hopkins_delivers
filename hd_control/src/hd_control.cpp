@@ -102,38 +102,43 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     while (ros::ok())
     {
         ros::spinOnce();
-        switch(mission_ptr_->state)
+        switch(mission_ptr_->state_)
         {
-        case 0:
+        case STATE_IDLE:
+            if (!mission_ptr_->target_cnt_ == 0)
+            {
+                mission_ptr_->reset(current_gps_, current_local_pos_);
+                ROS_INFO("##### Start route %d / %d ....", mission_ptr_->target_idx_, mission_ptr_->target_cnt_);
+            }
+            else
+                ROS_INFO_THROTTLE(1, "STATE_IDLE");
             break;
 
-        case 1:
-            if(!mission_ptr_->finished)
+        case STATE_NEW_GOAL:
+            if (!mission_ptr_->isTargetFinished())
             {
-                mission_ptr_->step();
+                mission_ptr_->step(current_gps_, current_atti_, obstacle_);
             }
             else
             {
-                mission_ptr_->reset();
-                mission_ptr_->start_gps_location = current_gps;
-                mission_ptr_->setTarget(20, 0, 0, 0);
-                mission_ptr_->state = 2;
-                ROS_INFO("##### Start route %d ....", mission_ptr_->state);
+                mission_ptr_->onGoal();
             }
             break;
-        }
-        Eigen::Vector3d v(0, 0, 0);
-        if (obstacle_detected_)
-        {
-            double power = obstacle_avoid_speed_ / (obstacle_.distance + 1);
-            if (obstacle_.orientation == 0)
-                v(1) += power;
+        
+        case STATE_ARRIVED:
+            if (!mission_ptr_->isPlanFinished())
+            {
+                mission_ptr_->reset(current_gps_, current_local_pos_);
+                ROS_INFO("##### Start route %d / %d ....", mission_ptr_->target_idx_, mission_ptr_->target_cnt_);
+            }
             else
-                v(1) -= power;
+            {
+                mission_ptr_->planFinished();
+            }
+            break;
 
-        }
-        else if (position_track_enabled_)
-        {
+        case STATE_FINISHED:
+            ROS_INFO_ONCE("##### plan finished, start aligning");
             if (landing_condition_met_)
             {
                 monitoredLanding();
@@ -147,7 +152,35 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
             {
                 drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, 0.0, velocity_control_effort_yaw_);
             }
+            break;
         }
+        // Eigen::Vector3d v(0, 0, 0);
+        // if (obstacle_detected_)
+        // {
+        //     double power = obstacle_avoid_speed_ / (obstacle_.distance + 1);
+        //     if (obstacle_.orientation == 0)
+        //         v(1) += power;
+        //     else
+        //         v(1) -= power;
+
+        // }
+        // else 
+        // if (position_track_enabled_)
+        // {
+        //     if (landing_condition_met_)
+        //     {
+        //         monitoredLanding();
+        //         // drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, descending_speed_, velocity_control_effort_yaw_);
+        //     }
+        //     else if (relanding_condition_met_)
+        //     {
+        //         drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, ascending_speed_, velocity_control_effort_yaw_);
+        //     }
+        //     else
+        //     {
+        //         drone_interface_ptr_->sendControlSignal(velocity_control_effort_x_, velocity_control_effort_y_, 0.0, velocity_control_effort_yaw_);
+        //     }
+        // }
         loop_rate.sleep();
     }
 #endif

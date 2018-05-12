@@ -37,9 +37,9 @@ void DroneInterface::sendControlSignal(double x, double y, double z, double yaw_
     control_pos_yaw_rate.axes.push_back(z);
     control_pos_yaw_rate.axes.push_back(yaw_rate);
     if (use_rate) // default
-        control_pos_yaw_rate.axes.push_back(flag_fru_rate_);
+        control_pos_yaw_rate.axes.push_back(flag_flu_rate_);
     else
-        control_pos_yaw_rate.axes.push_back(flag_fru_angle_);
+        control_pos_yaw_rate.axes.push_back(flag_flu_angle_);
 
     ctrl_pub_.publish(control_pos_yaw_rate);
 }

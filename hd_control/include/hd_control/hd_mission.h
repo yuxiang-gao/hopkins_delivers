@@ -27,13 +27,19 @@ namespace hd_control
 
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
-
+enum MissionState
+{
+    STATE_IDLE = 0;
+    STATE_NEW_GOAL = 1;
+    STATE_ARRIVED = 2;
+    STATE_FINISHED = 3;
+};
 typedef struct FlightTarget
 {
     float x = 0;
     float y = 0;
     float z = 0;
-    float yaw = 0;
+    //float yaw = 0;
 } FlightTarget;
 
 typedef struct ObstacleState
@@ -51,12 +57,14 @@ public:
     // where state 0 means the mission is note started
     // and each state i is for the process of moving to a target point.
     int state_;
-    bool finished_;
+    int target_idx_ = 0;
+    int target_cnt_ = 0;
+    bool target_finished_;
     float working_height_; // for test only
 
     Mission(DroneInterfacePtr drone_interface_ptr, sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos) : 
-        state_(0), 
-        finished_(false),
+        state_(STATE_IDLE), 
+        target_finished_(false),
         working_height_(5.0),
         inbound_counter_(0), 
         outbound_counter_(0), 
@@ -74,17 +82,51 @@ public:
         flight_plan_.push_back(fp);
     }
 
+    bool isPlanFinished()
+    {
+        if (target_cnt_ != 0 && target_cnt_ != 0 && target_cnt_ == target_idx_)
+            return true;
+        else 
+            return false;
+    }
+
+    void planFinished()
+    {
+        state_ = STATE_FINISHED;
+    }
+
+    bool isTargetFinished()
+    {
+        if (target_finished_)
+            return true;
+        else
+            return false;
+    }
+    // void newGoal()
+    // {
+    //     state_ = STATE_NEW_GOAL;
+    //     target_idx_ += 1;
+    // }
+
+    void onGoal()
+    {
+        state_ = STATE_ARRIVED;
+    }
     void step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti, ObstacleState &ob);
 
     void setPlan(std::vector<FlightTarget> flight_targets)
     {
-        state_ = 0;
+        state_ = STATE_NEW_GOAL;
+        target_idx_ = 1;
+        target_cnt_ = flight_targets.size();
         flight_plan_ = flight_targets;
     }
 
     void setGPSPlan(std::vector<sensor_msgs::NavSatFix> flight_targets)
     {
-        state_ = 0;
+        state_ = STATE_NEW_GOAL;
+        target_idx_ = 0;
+        target_cnt_ = flight_targets.size();
         gps_flight_plan_ = flight_targets;
         
     }
@@ -92,19 +134,21 @@ public:
     void appendPlan(FlightTarget flight_target)
     {
         flight_plan_.push_back(flight_target);
+        target_cnt_++;
     }
 
-    void uploadPlan()
-    {
-        FlightTarget fp;
-        fp.z = working_height_;
-        flight_plan_.clear();
-        flight_plan_.push_back(fp);
-    }
+    // void preparePlan()
+    // {
+    //     FlightTarget fp;
+    //     fp.x 
+    //     fp.z = start_gps_location_.altitude + working_height_;
+    //     flight_plan_.clear();
+    //     flight_plan_.push_back(fp);
+    // }
 
     void clearPlan()
     {
-        state_ = 0;
+        state_ = STATE_IDLE;
         gps_flight_plan_.clear();
         
     }
@@ -114,7 +158,7 @@ public:
         target_offset_x_ = ft.x;
         target_offset_y_ = ft.y;
         target_offset_z_ = ft.z;
-        target_yaw_      = ft.yaw;
+        //target_yaw_      = ft.yaw;
     }
 
     void setTarget(float x, float y, float z, float yaw)
@@ -122,7 +166,7 @@ public:
         target_offset_x_ = x;
         target_offset_y_ = y;
         target_offset_z_ = z;
-        target_yaw_      = yaw;
+        //target_yaw_      = yaw;
     }
 
     void setTarget(sensor_msgs::NavSatFix &target)
@@ -140,7 +184,9 @@ public:
         inbound_counter_ = 0;
         outbound_counter_ = 0;
         break_counter_ = 0;
-        finished_ = false;
+        target_finished_ = false;
+        state_ = STATE_NEW_GOAL;
+        target_idx_++;
         start_gps_location_ = current_gps;
         start_local_position_ = current_local_pos;
     }
@@ -156,6 +202,15 @@ public:
         deltaNed.y = deltaLat * deg2rad * C_EARTH;
         deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
         deltaNed.z = target.altitude - origin.altitude;
+    }
+
+    geometry_msgs::Vector3 ENUToFLU(double &x, double &y, double &z, geometry_msgs::Quaternion quat)
+    {
+        tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
+        tf::Vector3 v(x, y, z);
+        tf::Transform ENU2FLU(R_FLU2ENU.inverse(), v);
+        tf::Vector3 nv = ENU2FLU.getOrigin();
+        return geometry_msgs::Vector3(nv.x(), nv.y(), nv.z());
     }
 
     geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
