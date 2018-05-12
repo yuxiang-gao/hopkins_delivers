@@ -70,7 +70,7 @@ class DroneInterface
                      DJISDK::HORIZONTAL_BODY |
                      DJISDK::STABLE_ENABLE);
     uint8_t flag_enu_angle_ = (DJISDK::HORIZONTAL_VELOCITY | // use this
-                     DJISDK::VERTICAL_POSITION |
+                     DJISDK::VERTICAL_VELOCITY |
                      DJISDK::YAW_ANGLE |
                      DJISDK::HORIZONTAL_GROUND |
                      DJISDK::STABLE_ENABLE);

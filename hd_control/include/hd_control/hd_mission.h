@@ -184,7 +184,7 @@ public:
     {
         geometry_msgs::Vector3  target_offset;
         localOffsetFromGpsOffset(target_offset, target, start_gps_location_);
-        ROS_INFO("#### Target Offset x: %d, y: %d, z: %d", target_offset.x, target_offset.y, target_offset.z)
+        ROS_INFO("#### Target Offset x: %f, y: %f, z: %f", target_offset.x, target_offset.y, target_offset.z);
         target_offset_x_ = target_offset.x;
         target_offset_y_ = target_offset.y;
         target_offset_z_ = target_offset.z;
@@ -200,9 +200,9 @@ public:
         state_ = STATE_NEW_GOAL;
         setTarget(flight_plan_[target_idx_]);
         target_idx_++;
-        ROS_INFO("#### Set Target %d / %d", target_idx_, target_cnt_)
-        start_gps_location_ = current_gps;
-        start_local_position_ = current_local_pos;
+        ROS_INFO("#### Set Target %d / %d", target_idx_, target_cnt_);
+        //start_gps_location_ = current_gps;
+        //start_local_position_ = current_local_pos;
     }
 
     

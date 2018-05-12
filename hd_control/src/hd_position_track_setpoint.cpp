@@ -444,7 +444,7 @@ int main(int argc, char **argv)
 
         if (found_16h5 || found_36h11)
         {
-            ROS_DEBUG_ONCE("Setpoint node: Found Apriltag");
+            ROS_INFO_ONCE("Setpoint node: Found Apriltag");
             first_start = false;
 
             std_msgs::Bool track_enable_msg;

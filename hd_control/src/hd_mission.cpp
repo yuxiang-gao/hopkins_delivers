@@ -66,7 +66,11 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
     else
         yCmd = yOffsetRemaining;
 
-    zCmd = start_gps_location_.altitude + target_offset_z_;
+    if (std::abs(zOffsetRemaining) >= speedFactor)
+        zCmd = (zOffsetRemaining>0) ? speedFactor : -1 * speedFactor;
+    else
+        zCmd = zOffsetRemaining;
+    //zCmd = start_gps_location_.altitude + target_offset_z_;
 
     /*!
     * @brief: if we already started breaking, keep break for 50 sample (1sec)
