@@ -54,23 +54,23 @@ class DroneInterface
 
     ros::ServiceClient grab_package_service_;
 
-    uint8_t flag_fru_rate_ = (DJISDK::VERTICAL_VELOCITY |
-                     DJISDK::HORIZONTAL_VELOCITY |
+    uint8_t flag_fru_rate_ = (DJISDK::HORIZONTAL_VELOCITY |
+                     DJISDK::VERTICAL_VELOCITY |
                      DJISDK::YAW_RATE |
                      DJISDK::HORIZONTAL_BODY |
                      DJISDK::STABLE_ENABLE);
-    uint8_t flag_enu_rate_ = (DJISDK::VERTICAL_VELOCITY |
-                     DJISDK::HORIZONTAL_VELOCITY |
+    uint8_t flag_enu_rate_ = (DJISDK::HORIZONTAL_VELOCITY |
+                     DJISDK::VERTICAL_VELOCITY |
                      DJISDK::YAW_RATE |
                      DJISDK::HORIZONTAL_GROUND |
                      DJISDK::STABLE_ENABLE);
-    uint8_t flag_fru_angle_ = (DJISDK::VERTICAL_VELOCITY |
-                     DJISDK::HORIZONTAL_VELOCITY |
+    uint8_t flag_fru_angle_ = (DJISDK::HORIZONTAL_VELOCITY |
+                     DJISDK::VERTICAL_VELOCITY |
                      DJISDK::YAW_ANGLE  |
                      DJISDK::HORIZONTAL_BODY |
                      DJISDK::STABLE_ENABLE);
-    uint8_t flag_enu_angle_ = (DJISDK::VERTICAL_VELOCITY |
-                     DJISDK::HORIZONTAL_VELOCITY |
+    uint8_t flag_enu_angle_ = (DJISDK::HORIZONTAL_VELOCITY |
+                     DJISDK::VERTICAL_VELOCITY |
                      DJISDK::YAW_ANGLE |
                      DJISDK::HORIZONTAL_GROUND |
                      DJISDK::STABLE_ENABLE);

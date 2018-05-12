@@ -102,6 +102,26 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     while (ros::ok())
     {
         ros::spinOnce();
+        switch(mission_ptr_->state)
+        {
+        case 0:
+            break;
+
+        case 1:
+            if(!mission_ptr_->finished)
+            {
+                mission_ptr_->step();
+            }
+            else
+            {
+                mission_ptr_->reset();
+                mission_ptr_->start_gps_location = current_gps;
+                mission_ptr_->setTarget(20, 0, 0, 0);
+                mission_ptr_->state = 2;
+                ROS_INFO("##### Start route %d ....", mission_ptr_->state);
+            }
+            break;
+        }
         Eigen::Vector3d v(0, 0, 0);
         if (obstacle_detected_)
         {
