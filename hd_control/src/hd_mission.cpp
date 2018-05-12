@@ -9,34 +9,6 @@ namespace hd_control
 
 void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternion &current_atti, ObstacleState &ob)
 {
-    // add input ob_dist, ob_ori
-    if (ob.detected)
-    {
-        float ob_dist = ob.distance;
-        int ob_ori = ob.orientation;
-        ROS_INFO_THROTTLE(1, "####### obstacle dist: %f, ori: %d ...", ob_dist, ob_ori);
-        double power = obstacle_avoid_speed_ / (obstacle_.distance + 1);
-        if (obstacle_.orientation == 0)
-            yCmd += power;
-        else
-            yCmd -= power;
-        // if ( ob_dist == 0 )
-        // {
-
-        // }
-        // else if ( ob_dist >= 5)
-        // {
-        //     // add y speed
-        // }
-        // else if ( ob_dist > 1 && ob_dist < 5)
-        // {
-        //     // add greater y speed
-        // }
-        // else if (ob_dist < 1)
-        // {
-        //     // stop and move sideways
-        // }
-    }
     float speedFactor         = 2;
     float yawThresholdInDeg   = 10;
 
@@ -72,6 +44,18 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
         zCmd = (zOffsetRemaining>0) ? speedFactor : -1 * speedFactor;
     else
         zCmd = zOffsetRemaining;
+
+    if (ob.detected)
+    {
+        float ob_dist = ob.distance;
+        int ob_ori = ob.orientation;
+        ROS_INFO_THROTTLE(1, "####### obstacle dist: %f, ori: %d ...", ob_dist, ob_ori);
+        double power = obstacle_avoid_speed_ / (ob.distance + 1);
+        if (ob.orientation == 0)
+            yCmd += power;
+        else
+            yCmd -= power;
+    }
     //zCmd = start_gps_location_.altitude + target_offset_z_;
 
     /*!
