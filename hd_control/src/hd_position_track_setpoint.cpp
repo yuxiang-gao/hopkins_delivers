@@ -80,7 +80,7 @@ double setpoint_z = 0;
 double setpoint_yaw = 0;
 
 const int tag_16h5_num = 7;
-double landing_threshold_36h11 = 1.0;
+double landing_threshold_36h11 = 0.1;
 double landing_threshold_16h5 = 0.1;
 double reland_height_min_threshold = 1.3;
 double reland_height_max_threshold = 2.5;

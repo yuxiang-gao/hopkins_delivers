@@ -51,10 +51,12 @@ void Mission::step(sensor_msgs::NavSatFix &current_gps, geometry_msgs::Quaternio
         int ob_ori = ob.orientation;
         ROS_INFO_THROTTLE(1, "####### obstacle dist: %f, ori: %d ...", ob_dist, ob_ori);
         double power = obstacle_avoid_speed_ / (ob.distance + 1);
-        if (ob.orientation == 0)
+        if (ob_ori == 0)
             yCmd += power;
         else
             yCmd -= power;
+        if (ob_dist <= 1)
+            xCmd = 0;
     }
     //zCmd = start_gps_location_.altitude + target_offset_z_;
 

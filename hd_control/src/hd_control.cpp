@@ -21,7 +21,7 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     landing_condition_met_sub_ = nh_.subscribe("/hd/position_track/landing_condition_met", 1, &DroneControl::landingConditionMetCallback, this);
     relanding_condition_met_sub_ = nh_.subscribe("/hd/position_track/relanding_condition_met", 1, &DroneControl::relandingConditionMetCallback, this);
     
-    obstacle_detection_sub_ = nh_.subscribe("/hd/perception/stereo_obstacles", 10, &DroneControl::obstacleCallback, this);
+    obstacle_detection_sub_ = nh_.subscribe("/hd/perception/stereo_obstacle", 10, &DroneControl::obstacleCallback, this);
 
     repulsive_force_sub_ = nh_.subscribe("/hd/perception/repulsive_force", 10, &DroneControl::repulsiveForceCallback, this);
 
@@ -262,6 +262,7 @@ void DroneControl::obstacleCallback(const nav_msgs::OccupancyGrid::ConstPtr &map
     obstacle_.detected = obstacle_detected_;
     obstacle_.distance = obstacle_dist;
     obstacle_.orientation = obstacle_dir;
+    //ROS_INFO("##### obstacle deteced: %d,  dist: %f, ori: %d ....", obstacle_detected_?1:0, obstacle_dist, obstacle_dir);
 }
 
 void DroneControl::gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)
