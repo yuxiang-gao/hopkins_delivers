@@ -59,10 +59,6 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
     ros::spinOnce();
     ROS_INFO("Initiating mission!");
     mission_ptr_.reset(new Mission(drone_interface_ptr_, current_gps_, current_local_pos_));
-    FlightTarget flight_target;
-    flight_target.x = 5;
-    mission_ptr_->appendPlan(flight_target);
-    mission_ptr_->uploadPlan();
 
     ros::Rate loop_rate(50);
     
@@ -99,11 +95,27 @@ DroneControl::DroneControl(ros::NodeHandle *nh, ros::NodeHandle *nh_priv) : nh_(
 #endif
 
 #if MISSION_TEST
-    sensor_msgs::NavSatFix plan;
-    plan.latitude = 
-    plan.longitude = 
-    plan.altitude = 
-    mission_ptr_->appendPlan();
+    sensor_msgs::NavSatFix plan1, plan2, plan3, plan4, plan5;
+    plan1.latitude = 22.5432220583;
+    plan1.longitude = 113.960098482;
+    plan1.altitude = 11.1189594269;
+    plan2.latitude = 22.5432758175;
+    plan2.longitude = 113.959456789;
+    plan2.altitude = 11.1183586121;
+    plan3.latitude = 22.5431813513;
+    plan3.longitude = 113.958457373;
+    plan3.altitude = 11.1248550415;
+    plan4.latitude = 22.5433717948;
+    plan4.longitude = 113.959038288;
+    plan4.altitude = 11.1216869354;
+    plan5.latitude = 22.5431078901;
+    plan5.longitude = 113.959515933;
+    plan5.altitude = 11.1168937683;
+    mission_ptr_->appendPlan(plan1);
+    mission_ptr_->appendPlan(plan2);
+    mission_ptr_->appendPlan(plan3);
+    mission_ptr_->appendPlan(plan4);
+    mission_ptr_->appendPlan(plan5);
     
     while (ros::ok())
     {

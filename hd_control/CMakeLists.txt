@@ -148,7 +148,7 @@ add_dependencies(libdrone_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 #   )
 # add_dependencies(drone_state_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(drone_control_node src/hd_control.cpp)
+add_executable(drone_control_node src/hd_control.cpp src/hd_mission.cpp)
 target_link_libraries(drone_control_node
   libdrone_interface
   ${catkin_LIBRARIES}

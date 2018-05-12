@@ -1,9 +1,9 @@
 <launch>
-    <node ns="hd_landing" name="position_track_pid_velocity_x_controller" pkg="pid" type="controller">
+   <node ns="hd_landing" name="position_track_pid_velocity_x_controller" pkg="pid" type="controller">
       <param name="node_name" value="apriltag_tracking_x_controller" />
-      <param name="Kp" value="0.0015" />
-      <param name="Ki" value="0.0001" />
-      <param name="Kd" value="100" /> 
+      <param name="Kp" value="1.0" />
+      <param name="Ki" value="0.0" />
+      <param name="Kd" value="0" /> 
       <param name="P" value="1" />
       <param name="Q" value="0.00005" />
       <param name="R" value="1" />
@@ -11,7 +11,7 @@
       <param name="converge_threshold" value="0.05" />
       <param name="upper_limit" value="15" />
       <param name="lower_limit" value="-15" />
-      <param name="windup_limit" value="20" />
+      <param name="windup_limit" value="15" />
       <param name="cutoff_frequency" value="20" />
       <param name="diagnostic_period" value="0.25" />
       <param name="max_loop_frequency" value="105.0" />
@@ -20,20 +20,20 @@
       <param name="topic_from_plant" value="/hd/position_track/x_state" />
       <param name="topic_from_controller" value="/hd/position_track/velocity_control_effort_x" />
      </node>
-
-    <node ns="hd_landing" name="position_track_pid_velocity_y_controller" pkg="pid" type="controller"  >
+<!--
+     <node ns="hd_landing" name="position_track_pid_velocity_y_controller" pkg="pid" type="controller"  >
       <param name="node_name" value="apriltag_tracking_y_controller" />
-      <param name="Kp" value="0.0015" />
-      <param name="Ki" value="0.0001" />
-      <param name="Kd" value="100" /> 
+      <param name="Kp" value="5.0" />
+      <param name="Ki" value="0.01" />
+      <param name="Kd" value="0.1" />
       <param name="P" value="1" />
       <param name="Q" value="0.00005" />
       <param name="R" value="1" />
       <param name="converge_threshold" value="0.05" />
       <param name="upper_limit" value="15" />
       <param name="lower_limit" value="-15" />
-      <param name="windup_limit" value="20" />
-      <param name="cutoff_frequency" value="20" />
+      <param name="windup_limit" value="15" />
+      <param name="cutoff_frequency" value="15" />
       <param name="diagnostic_period" value="0.25" />
       <param name="max_loop_frequency" value="105.0" />
       <param name="min_loop_frequency" value="95.0" />
@@ -41,23 +41,26 @@
       <param name="topic_from_plant" value="/hd/position_track/y_state" />
       <param name="topic_from_controller" value="/hd/position_track/velocity_control_effort_y" />
     </node>
-
-    <node ns="hd_landing" name="position_track_pid_yaw_controller" pkg="pid" type="controller" >
+-->
+<!--
+ <node ns="hd_landing" name="position_track_pid_yaw_controller" pkg="pid" type="controller" >
       <param name="node_name" value="apriltag_tracking_yaw_controller" />
-      <param name="Kp" value="0.0001" />
+      <param name="Kp" value="1" />
       <param name="Ki" value="0.0" />
-      <param name="Kd" value="100" /> 
+      <param name="Kd" value="0" /> 
       <param name="converge_threshold" value="1" />
       <param name="upper_limit" value="10" />
       <param name="lower_limit" value="-10" />
-      <param name="windup_limit" value="5" />
+      <param name="windup_limit" value="10" />
       <param name="cutoff_frequency" value="20" />
       <param name="diagnostic_period" value="0.25" />
       <param name="max_loop_frequency" value="105.0" />
       <param name="min_loop_frequency" value="95.0" />
+      <param name="angle_wrap" value="2.0*180" />
+      <param name="angle_error" value="true" />
       <remap from="setpoint" to="/hd/position_track/setpoint_yaw" />
       <param name="topic_from_plant" value="/hd/position_track/yaw_state" />
       <param name="topic_from_controller" value="/hd/position_track/velocity_control_effort_yaw" />
      </node>
-
+-->
 </launch>

@@ -8,6 +8,7 @@
 #include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/UInt8.h>
+#include "hd_control/hd_drone_interface.h"
 
 #include "hd_control/hd_state.h"
 
@@ -29,10 +30,10 @@ const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
 enum MissionState
 {
-    STATE_IDLE = 0;
-    STATE_NEW_GOAL = 1;
-    STATE_ARRIVED = 2;
-    STATE_FINISHED = 3;
+    STATE_IDLE = 0,
+    STATE_NEW_GOAL = 1,
+    STATE_ARRIVED = 2,
+    STATE_FINISHED = 3,
 };
 typedef struct FlightTarget
 {
@@ -63,7 +64,7 @@ public:
     float working_height_; // for test only
     std::vector<sensor_msgs::NavSatFix> flight_plan_;
 
-    Mission(DroneInterfacePtr drone_interface_ptr, sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos) : 
+    Mission(DroneInterfacePtr drone_interface_ptr, sensor_msgs::NavSatFix &current_gps, geometry_msgs::Point &current_local_pos): 
         state_(STATE_IDLE), 
         target_finished_(false),
         working_height_(5.0),
@@ -94,7 +95,9 @@ public:
     void planFinished()
     {
         state_ = STATE_FINISHED;
-        flight_plan
+        flight_plan_.clear();
+        target_cnt_ = 0;
+        target_idx_ = 0;
     }
 
     bool isTargetFinished()
@@ -147,12 +150,12 @@ public:
     //     flight_plan_.push_back(fp);
     // }
 
-    void clearPlan()
-    {
-        state_ = STATE_IDLE;
-        gps_flight_plan_.clear();
+    // void clearPlan()
+    // {
+    //     state_ = STATE_IDLE;
+    //     gps_flight_plan_.clear();
         
-    }
+    // }
 
     // void setTarget(FlightTarget ft)
     // {
@@ -172,7 +175,7 @@ public:
 
     void appendPlan(sensor_msgs::NavSatFix &target)
     {
-        flight_plan_.append(target);
+        flight_plan_.push_back(target);
         target_cnt_ = flight_plan_.size();
     }
 
@@ -212,16 +215,16 @@ public:
         deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
         deltaNed.z = target.altitude - origin.altitude;
     }
-
+/*
     geometry_msgs::Vector3 ENUToFLU(double &x, double &y, double &z, geometry_msgs::Quaternion quat)
     {
         tf::Matrix3x3 R_FLU2ENU(tf::Quaternion(quat.x, quat.y, quat.z, quat.w));
         tf::Vector3 v(x, y, z);
         tf::Transform ENU2FLU(R_FLU2ENU.inverse(), v);
         tf::Vector3 nv = ENU2FLU.getOrigin();
-        return geometry_msgs::Vector3(nv.x(), nv.y(), nv.z());
+        return geometry_msgs::Vector3((double)nv.x(), (double)nv.y(), (double)nv.z());
     }
-
+*/
     geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
     {
         geometry_msgs::Vector3 ans;
@@ -232,8 +235,8 @@ public:
     }
 
 private:
-    std::vector<FlightTarget> flight_plan_;
-    std::vector<sensor_msgs::NavSatFix> gps_flight_plan_;
+    //std::vector<FlightTarget> flight_plan_;
+    //std::vector<sensor_msgs::NavSatFix> gps_flight_plan_;
 
     int inbound_counter_;
     int outbound_counter_;
